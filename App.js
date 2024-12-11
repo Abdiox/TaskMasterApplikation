@@ -3,9 +3,10 @@ import { StatusBar } from "expo-status-bar";
 import { StyleSheet, Text, View, Image, Dimensions } from "react-native";
 import { TextInput, Button } from "react-native-paper";
 import LottieView from "lottie-react-native";
-import { NavigationContainer } from "@react-navigation/native"; // Import NavigationContainer
-import { createStackNavigator } from "@react-navigation/stack"; // Import StackNavigator
+import { NavigationContainer } from "@react-navigation/native";
+import { createStackNavigator } from "@react-navigation/stack";
 import Opgaver from "./Opgaver";
+import Hjem from "./Hjem";
 
 // Create the stack navigator
 const Stack = createStackNavigator();
@@ -15,12 +16,11 @@ function Homescreen({ navigation }) {
   const [LoginSuccessAnimation, setLoginSuccessAnimation] = useState(false);
 
   const handleSignIn = () => {
-    setAccountAnimation(false); // Hide the account animation
-    setLoginSuccessAnimation(true); // Show the login success animation
+    setAccountAnimation(false);
+    setLoginSuccessAnimation(true);
     setTimeout(() => {
-      // After animation completes, navigate to "Opgaver"
-      navigation.navigate("Opgaver");
-    }, 2000); // Adjust this delay as needed for animation duration
+      navigation.navigate("Hjem");
+    }, 2000);
     console.log("Sign In pressed");
   };
 
@@ -44,6 +44,7 @@ function Homescreen({ navigation }) {
       {LoginSuccessAnimation && <LottieView source={require("./assets/LoginSuccesfullyAnimation.json")} autoPlay loop style={styles.animationSize} />}
 
       <StatusBar style="auto" />
+      <Text style={styles.footerText}>TaskMaster © 2024</Text>
     </View>
   );
 }
@@ -53,6 +54,7 @@ export default function App() {
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Home">
         <Stack.Screen name="Home" component={Homescreen} />
+        <Stack.Screen name="Hjem" component={Hjem} />
         <Stack.Screen name="Opgaver" component={Opgaver} />
       </Stack.Navigator>
     </NavigationContainer>

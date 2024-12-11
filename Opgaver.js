@@ -34,21 +34,19 @@ const tasks = [
 const Opgaver = () => {
   const [taskAnimation, setTaskAnimation] = useState(true);
 
-  // Når animationen er færdig, stopper den med at køre, men bliver på skærmen
   const handleAnimationFinish = () => {
-    setTaskAnimation(false); // Animationen stopper, men bliver på skærmen
+    setTaskAnimation(false);
   };
 
   return (
     <View style={styles.container}>
       <StatusBar style="auto" />
 
-      {/* Animationen vises hele tiden, men stopper med at køre når færdig */}
       <LottieView
         source={require("./assets/TaskAnimation.json")}
         autoPlay
-        loop={false} // Animationen loops ikke
-        onAnimationFinish={handleAnimationFinish} // Når animationen er færdig, stopper den og bliver på skærmen
+        loop={false}
+        onAnimationFinish={handleAnimationFinish}
         style={styles.animationSize}
       />
 
@@ -67,6 +65,7 @@ const Opgaver = () => {
           </View>
         )}
       />
+      <Text style={styles.footerText}>TaskMaster © 2024</Text>
     </View>
   );
 };
@@ -95,12 +94,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 16,
     marginBottom: 16,
-    width: Dimensions.get("window").width * 0.9, // Bredde af kortene
+    width: Dimensions.get("window").width * 0.9,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
-    elevation: 5, // For at skabe en skyggeeffekt på Android
+    elevation: 5,
   },
   taskTitle: {
     fontSize: 18,
