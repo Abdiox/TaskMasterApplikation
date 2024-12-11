@@ -5,8 +5,14 @@ import { TextInput, Button } from "react-native-paper";
 import LottieView from "lottie-react-native";
 
 export default function App() {
-  const [AccountAnimation, setAnimation] = useState(true);
+  const [AccountAnimation, setAccountAnimation] = useState(true);
   const [LoginSuccessAnimation, setLoginSuccessAnimation] = useState(false);
+
+  const handleSignIn = () => {
+    setAccountAnimation(false);
+    setLoginSuccessAnimation(true);
+    console.log("Sign In pressed");
+  };
 
   return (
     <View style={styles.container}>
@@ -16,7 +22,7 @@ export default function App() {
       <Text style={styles.label}>Login:</Text>
       <TextInput label="Username" mode="outlined" style={styles.input} />
       <TextInput label="Password" mode="outlined" secureTextEntry style={styles.input} />
-      <Button mode="contained" onPress={() => console.log("Sign In pressed")} buttonColor="#333" textColor="#333">
+      <Button mode="contained" onPress={handleSignIn} buttonColor="#333" textColor="#FFA500">
         Sign In
       </Button>
       {LoginSuccessAnimation && <LottieView source={require("./assets/LoginSuccesfullyAnimation.json")} autoPlay loop style={styles.animationSize} />}
