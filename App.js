@@ -10,12 +10,15 @@ import { MaterialIcons } from "@expo/vector-icons";
 import Opgaver from "./Opgaver";
 import Hjem from "./Hjem";
 import SætOpgaver from "./SætOpgaver";
+import Adminstration from "./Adminstration";
+import Profil from "./Profil";
+import { LinearGradient } from "react-native-linear-gradient"; // Importer LinearGradient
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
 // Login-skærm
-function Homescreen({ navigation }) {
+function LoginSite({ navigation }) {
   const [AccountAnimation, setAccountAnimation] = useState(true);
   const [LoginSuccessAnimation, setLoginSuccessAnimation] = useState(false);
 
@@ -42,7 +45,7 @@ function Homescreen({ navigation }) {
       <Text style={styles.label}>Login:</Text>
       <TextInput label="Username" mode="outlined" style={styles.input} />
       <TextInput label="Password" mode="outlined" secureTextEntry style={styles.input} />
-      <Button mode="contained" onPress={handleSignIn} buttonColor="#333" textColor="#fff">
+      <Button mode="contained" onPress={handleSignIn} buttonColor="#FFA500" textColor="#fff">
         Sign In
       </Button>
       {LoginSuccessAnimation && <LottieView source={require("./assets/LoginSuccesfullyAnimation.json")} autoPlay loop style={styles.animationSize} />}
@@ -66,16 +69,26 @@ function BottomTabs() {
             iconName = "assignment";
           } else if (route.name === "SætOpgaver") {
             iconName = "add-task";
+          } else if (route.name === "Adminstration") {
+            iconName = "admin-panel-settings";
+          } else if (route.name === "Profil") {
+            iconName = "person";
           }
+
           return <MaterialIcons name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: "#2e8b57",
-        tabBarInactiveTintColor: "gray",
+        tabBarActiveTintColor: "#FFA500",
+        tabBarInactiveTintColor: "#FFF",
+        tabBarStyle: {
+          backgroundColor: "#111",
+        },
       })}
     >
       <Tab.Screen name="Hjem" component={Hjem} />
       <Tab.Screen name="Opgaver" component={Opgaver} />
       <Tab.Screen name="SætOpgaver" component={SætOpgaver} />
+      <Tab.Screen name="Adminstration" component={Adminstration} />
+      <Tab.Screen name="Profil" component={Profil} />
     </Tab.Navigator>
   );
 }
@@ -85,8 +98,7 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Home">
-        <Stack.Screen name="Home" component={Homescreen} options={{ headerShown: false }} />
-
+        <Stack.Screen name="Home" component={LoginSite} options={{ headerShown: false }} />
         <Stack.Screen name="Main" component={BottomTabs} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
@@ -127,5 +139,11 @@ const styles = StyleSheet.create({
   animationSize: {
     width: Dimensions.get("window").width * 0.4,
     height: Dimensions.get("window").width * 0.4,
+  },
+  footerText: {
+    fontSize: 12,
+    color: "#aaa",
+    marginTop: 20,
+    textAlign: "center",
   },
 });

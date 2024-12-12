@@ -46,8 +46,9 @@ const Hjem = ({ navigation }) => {
           </Text>
           <Button
             mode="contained"
-            style={styles.button}
-            onPress={() => navigation.navigate("Opgaver")} // Naviger til opgaver
+            onPress={() => navigation.navigate("Opgaver")}
+            style={styles.customButton} // Tilføj tilpasset stil for knappen
+            labelStyle={styles.buttonText} // Tilføj tilpasset tekstfarve
           >
             Kom i gang
           </Button>
@@ -68,16 +69,20 @@ const styles = StyleSheet.create({
     padding: 20,
     justifyContent: "space-between",
   },
+
   logo: {
-    width: Dimensions.get("window").width * 0.4,
-    height: Dimensions.get("window").width * 0.4,
+    width: Dimensions.get("window").width * 0.35,
+    height: Dimensions.get("window").width * 0.35,
+    borderRadius: Dimensions.get("window").width * 0.25,
     marginBottom: 16,
   },
+
   animation: {
     width: Dimensions.get("window").width * 0.6,
     height: Dimensions.get("window").width * 0.6,
     marginVertical: 20,
   },
+
   content: {
     alignItems: "center",
     paddingHorizontal: 20,
@@ -101,15 +106,22 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 20,
   },
-  button: {
-    width: Dimensions.get("window").width * 0.8,
-    backgroundColor: "#2e8b57",
-    paddingVertical: 10,
-  },
+
   footer: {
     fontSize: 14,
     color: "#bbb",
     textAlign: "center",
     marginBottom: 10,
+  },
+
+  customButton: {
+    backgroundColor: "#FFA500", // Orange baggrundsfarve
+    width: Dimensions.get("window").width * 0.8, // Bredde på knappen
+    borderRadius: 25, // Afrundede hjørner
+    marginTop: 20, // Margen øverst
+  },
+
+  buttonText: {
+    color: "#fff", // Hvid tekstfarve
   },
 });
