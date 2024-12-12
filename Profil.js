@@ -8,21 +8,20 @@ const Profil = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      {/* Animation in the top left corner */}
+      {/* Animationer: Profil til venstre og Indstillinger til højre */}
       {profilAnimation && (
         <View style={styles.animationContainer}>
-          <LottieView source={require("./assets/ProfilAnimation.json")} autoPlay loop style={styles.animation} />
+          <LottieView source={require("./assets/ProfilAnimation.json")} autoPlay loop style={styles.profilAnimation} />
+          <LottieView source={require("./assets/IndstillingerAnimation.json")} autoPlay loop style={styles.indstillingerAnimation} />
         </View>
       )}
 
-      {/* Profile Header */}
+      {/* Profil Header */}
       <View style={styles.header}>
         <View style={styles.profileContainer}>
-          {/* Profile Picture */}
-          {/* <Image
-            source={require("./assets/profile-picture.jpg")} // Replace with your profile picture
-            style={styles.profilePicture}
-          /> */}
+          {/* Profilbillede */}
+          <Image source={{ uri: "https://i.ibb.co/tMbLN1W/profile-icon-design-free-vector.jpg" }} style={styles.profilePicture} />
+
           <View style={styles.statsContainer}>
             <Text style={styles.name}>Vini Jr</Text>
             <Text style={styles.info}>ViniJr@gmail.com</Text>
@@ -40,7 +39,7 @@ const Profil = ({ navigation }) => {
         </View>
       </View>
 
-      {/* Edit Profile Button */}
+      {/* Rediger Profil knap */}
       <Button mode="contained" style={styles.button} onPress={() => navigation.navigate("RedigerProfil")}>
         Rediger Profil
       </Button>
@@ -62,14 +61,25 @@ const styles = StyleSheet.create({
   animationContainer: {
     position: "absolute",
     top: 20,
-    left: 310,
+    left: 20,
     width: 60,
     height: 60,
   },
 
-  animation: {
-    width: "100%",
-    height: "100%",
+  profilAnimation: {
+    position: "absolute",
+    top: 20,
+    left: 20,
+    width: 50,
+    height: 50,
+  },
+
+  indstillingerAnimation: {
+    position: "absolute",
+    top: -12,
+    left: 312,
+    width: 50,
+    height: 50,
   },
 
   header: {
@@ -89,7 +99,7 @@ const styles = StyleSheet.create({
     height: 120,
     borderRadius: 60,
     borderWidth: 3,
-    borderColor: "#2e8b57",
+    borderColor: "#FFA500",
     marginRight: 20,
   },
 
@@ -127,7 +137,7 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#2e8b57",
+    color: "#FFA500",
   },
 
   statLabel: {
