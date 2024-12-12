@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import {app, db} from "./firebase";
 import { StatusBar } from "expo-status-bar";
 import { StyleSheet, Text, View, Image, Dimensions } from "react-native";
 import { TextInput, Button } from "react-native-paper";
@@ -7,6 +8,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { MaterialIcons } from "@expo/vector-icons";
+import  {getAuth, signInWithEmailAndPassword} from "firebase/auth";
 import Opgaver from "./Tabs/Opgaver";
 import Hjem from "./Tabs/Hjem";
 import SætOpgaver from "./Tabs/SætOpgaver";
@@ -16,19 +18,43 @@ import Indstillinger from "./Indstillinger/Indstillinger";
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
+const auth = getAuth(app);
 
-function LoginSite({ navigation }) {
+async function LoginSite({ navigation }) {
   const [AccountAnimation, setAccountAnimation] = useState(true);
   const [LoginSuccessAnimation, setLoginSuccessAnimation] = useState(false);
+  const [enteredEmail, setEmail] = useState("");
+  const [enteredPassword, setPassword] = useState("");
+  const [userId, setUserId] = useState("");
 
-  const handleSignIn = () => {
-    setAccountAnimation(false);
-    setLoginSuccessAnimation(true);
-    setTimeout(() => {
-      navigation.navigate("Main");
-    }, 2000);
-    console.log("Sign In pressed");
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        setUserId(user.uid);
+        navigation.navigate("Main");
+      } else {
+        setUserId(null);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+
+  const handleSignIn = async () => {
+    try {
+      const userCredentials = await signInWithEmailAndPassword(auth, enteredEmail, enteredPassword);
+      setAccountAnimation(false);
+      setLoginSuccessAnimation(true);
+      setTimeout(() => {
+        navigation.navigate("Main");
+      }, 2000);
+      console.log("Signed in:", userCredentials.user.email);
+    } catch (error) {
+      console.error("Error signing in:", error.message);
+      alert(error.message); // Display an error message for the user
+    }
   };
+  
 
   return (
     <View style={styles.container}>
@@ -42,8 +68,21 @@ function LoginSite({ navigation }) {
       <Text style={styles.title}>Velkommen til TaskMaster!</Text>
       {AccountAnimation && <LottieView source={require("./assets/AccountAnimation.json")} autoPlay loop style={styles.animationSize} />}
       <Text style={styles.label}>Login:</Text>
-      <TextInput label="Username" mode="outlined" style={styles.input} />
-      <TextInput label="Password" mode="outlined" secureTextEntry style={styles.input} />
+      <TextInput 
+  label="Email" 
+  mode="outlined" 
+  style={styles.input} 
+  value={enteredEmail} 
+  onChangeText={(text) => setEmail(text)} 
+/>
+<TextInput 
+  label="Password" 
+  mode="outlined" 
+  secureTextEntry 
+  style={styles.input} 
+  value={enteredPassword} 
+  onChangeText={(text) => setPassword(text)} 
+/>
       <Button mode="contained" onPress={handleSignIn} buttonColor="#FFA500" textColor="#fff">
         Sign In
       </Button>
