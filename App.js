@@ -12,6 +12,7 @@ import Hjem from "./Hjem";
 import SætOpgaver from "./SætOpgaver";
 import Adminstration from "./Adminstration";
 import Profil from "./Profil";
+import Indstillinger from "./Indstillinger";
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -96,6 +97,7 @@ export default function App() {
       <Stack.Navigator initialRouteName="Home">
         <Stack.Screen name="Home" component={LoginSite} options={{ headerShown: false }} />
         <Stack.Screen name="Main" component={BottomTabs} options={{ headerShown: false }} />
+        <Stack.Screen name="Indstillinger" component={Indstillinger} />
       </Stack.Navigator>
     </NavigationContainer>
   );

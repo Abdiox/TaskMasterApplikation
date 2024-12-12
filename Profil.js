@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { StyleSheet, Text, View, Image, Dimensions } from "react-native";
+import { StyleSheet, Text, View, Image, Dimensions, TouchableOpacity } from "react-native";
 import { Button } from "react-native-paper";
 import LottieView from "lottie-react-native";
 
@@ -11,14 +11,15 @@ const Profil = ({ navigation }) => {
       {profilAnimation && (
         <View style={styles.animationContainer}>
           <LottieView source={require("./assets/ProfilAnimation.json")} autoPlay loop style={styles.profilAnimation} />
-          <LottieView source={require("./assets/IndstillingerAnimation.json")} autoPlay loop style={styles.indstillingerAnimation} />
+          <TouchableOpacity onPress={() => navigation.navigate("Indstillinger")}>
+            <LottieView source={require("./assets/IndstillingerAnimation.json")} autoPlay loop style={styles.indstillingerAnimation} />
+          </TouchableOpacity>
         </View>
       )}
 
       <View style={styles.header}>
         <View style={styles.profileContainer}>
           <Image source={{ uri: "https://i.ibb.co/tMbLN1W/profile-icon-design-free-vector.jpg" }} style={styles.profilePicture} />
-
           <View style={styles.statsContainer}>
             <Text style={styles.name}>Vini Jr</Text>
             <Text style={styles.info}>ViniJr@gmail.com</Text>
@@ -35,9 +36,9 @@ const Profil = ({ navigation }) => {
         </View>
       </View>
 
-      <Button mode="contained" style={styles.button} onPress={() => navigation.navigate("RedigerProfil")}>
+      {/* <Button mode="contained" style={styles.button} onPress={() => navigation.navigate("RedigerProfil")}>
         Rediger Profil
-      </Button>
+      </Button> */}
 
       <Text style={styles.footer}>TaskMaster © 2024</Text>
     </View>
