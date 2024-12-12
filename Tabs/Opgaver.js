@@ -42,7 +42,7 @@ const Opgaver = () => {
       <StatusBar style="auto" />
 
       <LottieView
-        source={require("./assets/TaskAnimation.json")}
+        source={require("../assets/TaskAnimation.json")}
         autoPlay
         loop={false}
         onAnimationFinish={handleAnimationFinish}

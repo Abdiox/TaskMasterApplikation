@@ -7,12 +7,12 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { MaterialIcons } from "@expo/vector-icons";
-import Opgaver from "./Opgaver";
-import Hjem from "./Hjem";
-import SætOpgaver from "./SætOpgaver";
-import Adminstration from "./Adminstration";
-import Profil from "./Profil";
-import Indstillinger from "./Indstillinger";
+import Opgaver from "./Tabs/Opgaver";
+import Hjem from "./Tabs/Hjem";
+import SætOpgaver from "./Tabs/SætOpgaver";
+import Adminstration from "./Tabs/Adminstration";
+import Profil from "./Tabs/Profil";
+import Indstillinger from "./Indstillinger/Indstillinger";
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();

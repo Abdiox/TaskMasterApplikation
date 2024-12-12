@@ -28,7 +28,7 @@ const Hjem = ({ navigation }) => {
       {showAnimation && (
         <Animated.View style={{ opacity: fadeAnim }}>
           <LottieView
-            source={require("./assets/WelcomeAnimation.json")}
+            source={require("../assets/WelcomeAnimation.json")}
             autoPlay
             loop={false}
             onAnimationFinish={fadeOutAnimation}

@@ -10,7 +10,7 @@ const Indstillinger = ({ navigation }) => {
     <View style={styles.container}>
       {indstillingerAnimation && (
         <View style={styles.animationContainer}>
-          <LottieView source={require("./assets/IndstillingerAnimation.json")} autoPlay loop style={styles.indstillingerAnimation} />
+          <LottieView source={require("../assets/IndstillingerAnimation.json")} autoPlay loop style={styles.indstillingerAnimation} />
         </View>
       )}
 

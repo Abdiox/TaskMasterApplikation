@@ -11,7 +11,7 @@ const Adminstration = ({ navigation }) => {
     <View style={styles.container}>
       {adminstrationAnimation && (
         <View style={styles.animationContainer}>
-          <LottieView source={require("./assets/AdminstrationAnimation.json")} autoPlay loop style={styles.animation} />
+          <LottieView source={require("../assets/AdminstrationAnimation.json")} autoPlay loop style={styles.animation} />
         </View>
       )}
 
