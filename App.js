@@ -5,12 +5,16 @@ import { TextInput, Button } from "react-native-paper";
 import LottieView from "lottie-react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { MaterialIcons } from "@expo/vector-icons";
 import Opgaver from "./Opgaver";
 import Hjem from "./Hjem";
+import SætOpgaver from "./SætOpgaver";
 
-// Create the stack navigator
 const Stack = createStackNavigator();
+const Tab = createBottomTabNavigator();
 
+// Login-skærm
 function Homescreen({ navigation }) {
   const [AccountAnimation, setAccountAnimation] = useState(true);
   const [LoginSuccessAnimation, setLoginSuccessAnimation] = useState(false);
@@ -19,7 +23,7 @@ function Homescreen({ navigation }) {
     setAccountAnimation(false);
     setLoginSuccessAnimation(true);
     setTimeout(() => {
-      navigation.navigate("Hjem");
+      navigation.navigate("Main"); // Naviger til bundnavigationen
     }, 2000);
     console.log("Sign In pressed");
   };
@@ -49,13 +53,41 @@ function Homescreen({ navigation }) {
   );
 }
 
+// Bundnavigation
+function BottomTabs() {
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        tabBarIcon: ({ color, size }) => {
+          let iconName;
+          if (route.name === "Hjem") {
+            iconName = "home";
+          } else if (route.name === "Opgaver") {
+            iconName = "assignment";
+          } else if (route.name === "SætOpgaver") {
+            iconName = "add-task";
+          }
+          return <MaterialIcons name={iconName} size={size} color={color} />;
+        },
+        tabBarActiveTintColor: "#2e8b57",
+        tabBarInactiveTintColor: "gray",
+      })}
+    >
+      <Tab.Screen name="Hjem" component={Hjem} />
+      <Tab.Screen name="Opgaver" component={Opgaver} />
+      <Tab.Screen name="SætOpgaver" component={SætOpgaver} />
+    </Tab.Navigator>
+  );
+}
+
+// Hovednavigator
 export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Home">
-        <Stack.Screen name="Home" component={Homescreen} />
-        <Stack.Screen name="Hjem" component={Hjem} />
-        <Stack.Screen name="Opgaver" component={Opgaver} />
+        <Stack.Screen name="Home" component={Homescreen} options={{ headerShown: false }} />
+
+        <Stack.Screen name="Main" component={BottomTabs} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
@@ -76,14 +108,12 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     textAlign: "center",
   },
-
   image: {
     width: Dimensions.get("window").width * 0.5,
     height: Dimensions.get("window").width * 0.5,
     borderRadius: Dimensions.get("window").width * 0.25,
     marginBottom: 16,
   },
-
   label: {
     fontSize: 16,
     color: "#333",

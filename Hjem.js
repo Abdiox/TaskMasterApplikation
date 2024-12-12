@@ -1,90 +1,92 @@
 import React, { useState } from "react";
-import { StatusBar } from "expo-status-bar";
 import { StyleSheet, Text, View, Image, Dimensions, Animated } from "react-native";
 import { Button } from "react-native-paper";
 import LottieView from "lottie-react-native";
 
 const Hjem = ({ navigation }) => {
   const [showAnimation, setShowAnimation] = useState(true);
-  const fadeAnim = useState(new Animated.Value(1))[0]; // Start opacity at 1
-
-  const handleStart = () => {
-    navigation.navigate("Opgaver"); // Skifter til Opgaver-skærmen
-  };
+  const fadeAnim = useState(new Animated.Value(1))[0];
 
   const fadeOutAnimation = () => {
     Animated.timing(fadeAnim, {
-      toValue: 0, // Fade out animation
+      toValue: 0, // Fade-out animation
       duration: 1000, // Duration of fade-out
       useNativeDriver: true,
-    }).start(() => setShowAnimation(false)); // Når animationen er færdig, skjul animationen
+    }).start(() => setShowAnimation(false));
   };
 
   return (
     <View style={styles.container}>
-      <StatusBar style="auto" />
-      {/* Hvis du bruger et lokalt billede */}
       <Image
-        source={require("./assets/logo.png")} // Lokalt billede
+        source={{
+          uri: "https://i.ibb.co/B3291RZ/9430b192-e88b-48cd-bf31-31afdc813153.jpg",
+        }}
         style={styles.logo}
         resizeMode="contain"
       />
 
-      {/* Vis animationen og fade den ud når den er færdig */}
       {showAnimation && (
-        <LottieView
-          source={require("./assets/WelcomeAnimation.json")}
-          autoPlay
-          loop={false}
-          onAnimationFinish={fadeOutAnimation} // Start fade out animation, når animationen er færdig
-          style={styles.animationSize}
-        />
+        <Animated.View style={{ opacity: fadeAnim }}>
+          <LottieView
+            source={require("./assets/WelcomeAnimation.json")}
+            autoPlay
+            loop={false}
+            onAnimationFinish={fadeOutAnimation}
+            style={styles.animation}
+          />
+        </Animated.View>
       )}
 
-      {/* Fadet ud animation */}
-      <Animated.View style={[styles.overlay, { opacity: fadeAnim }]}>
-        <Text style={styles.title}>Velkommen til TaskMaster!</Text>
-        <Text style={styles.subtitle}>Din partner i effektiv opgavestyring</Text>
-
-        <Text style={styles.description}>
-          Få styr på dine projekter og opgaver med TaskMaster. Organiser, deleger og track dine opgaver nemt og effektivt. Kom hurtigt i gang med at
-          skabe orden i dine arbejdsdage!
-        </Text>
-
-        <Button mode="contained" onPress={handleStart} style={styles.button}>
-          Kom i gang
-        </Button>
-
-        <Text style={styles.footerText}>TaskMaster © 2024</Text>
-      </Animated.View>
+      {!showAnimation && (
+        <View style={styles.content}>
+          <Text style={styles.title}>Velkommen til TaskMaster!</Text>
+          <Text style={styles.subtitle}>Din partner i effektiv opgavestyring</Text>
+          <Text style={styles.description}>
+            Få styr på dine projekter og opgaver med TaskMaster. Organiser, deleger og track dine opgaver nemt og effektivt.
+          </Text>
+          <Button
+            mode="contained"
+            style={styles.button}
+            onPress={() => navigation.navigate("Opgaver")} // Naviger til opgaver
+          >
+            Kom i gang
+          </Button>
+        </View>
+      )}
+      <Text style={styles.footer}>TaskMaster © 2024</Text>
     </View>
   );
 };
 
-// Styling af komponenten
+export default Hjem;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#f1f1f1",
     padding: 20,
+    justifyContent: "space-between",
   },
   logo: {
-    width: Dimensions.get("window").width * 0.5,
-    height: Dimensions.get("window").width * 0.5,
-    marginBottom: 30,
+    width: Dimensions.get("window").width * 0.4,
+    height: Dimensions.get("window").width * 0.4,
+    marginBottom: 16,
   },
-  animationSize: {
-    width: Dimensions.get("window").width * 0.7,
-    height: Dimensions.get("window").width * 0.7,
-    marginBottom: 30,
+  animation: {
+    width: Dimensions.get("window").width * 0.6,
+    height: Dimensions.get("window").width * 0.6,
+    marginVertical: 20,
+  },
+  content: {
+    alignItems: "center",
+    paddingHorizontal: 20,
   },
   title: {
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: "bold",
     color: "#333",
-    marginBottom: 10,
+    marginBottom: 8,
     textAlign: "center",
   },
   subtitle: {
@@ -97,30 +99,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#777",
     textAlign: "center",
-    marginBottom: 30,
+    marginBottom: 20,
   },
   button: {
-    width: "80%",
-    paddingVertical: 10,
+    width: Dimensions.get("window").width * 0.8,
     backgroundColor: "#2e8b57",
+    paddingVertical: 10,
   },
-  footerText: {
+  footer: {
     fontSize: 14,
     color: "#bbb",
-    position: "absolute",
-    bottom: 20,
     textAlign: "center",
-  },
-  overlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 10,
+    marginBottom: 10,
   },
 });
-
-export default Hjem;
