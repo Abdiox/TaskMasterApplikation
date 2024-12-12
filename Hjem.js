@@ -9,8 +9,8 @@ const Hjem = ({ navigation }) => {
 
   const fadeOutAnimation = () => {
     Animated.timing(fadeAnim, {
-      toValue: 0, // Fade-out animation
-      duration: 1000, // Duration of fade-out
+      toValue: 0,
+      duration: 1000,
       useNativeDriver: true,
     }).start(() => setShowAnimation(false));
   };
@@ -44,12 +44,7 @@ const Hjem = ({ navigation }) => {
           <Text style={styles.description}>
             Få styr på dine projekter og opgaver med TaskMaster. Organiser, deleger og track dine opgaver nemt og effektivt.
           </Text>
-          <Button
-            mode="contained"
-            onPress={() => navigation.navigate("Opgaver")}
-            style={styles.customButton} // Tilføj tilpasset stil for knappen
-            labelStyle={styles.buttonText} // Tilføj tilpasset tekstfarve
-          >
+          <Button mode="contained" onPress={() => navigation.navigate("Opgaver")} style={styles.customButton} labelStyle={styles.buttonText}>
             Kom i gang
           </Button>
         </View>
@@ -115,13 +110,13 @@ const styles = StyleSheet.create({
   },
 
   customButton: {
-    backgroundColor: "#FFA500", // Orange baggrundsfarve
-    width: Dimensions.get("window").width * 0.8, // Bredde på knappen
-    borderRadius: 25, // Afrundede hjørner
-    marginTop: 20, // Margen øverst
+    backgroundColor: "#FFA500",
+    width: Dimensions.get("window").width * 0.8,
+    borderRadius: 25,
+    marginTop: 20,
   },
 
   buttonText: {
-    color: "#fff", // Hvid tekstfarve
+    color: "#fff",
   },
 });

@@ -8,7 +8,6 @@ const Profil = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      {/* Animationer: Profil til venstre og Indstillinger til højre */}
       {profilAnimation && (
         <View style={styles.animationContainer}>
           <LottieView source={require("./assets/ProfilAnimation.json")} autoPlay loop style={styles.profilAnimation} />
@@ -16,10 +15,8 @@ const Profil = ({ navigation }) => {
         </View>
       )}
 
-      {/* Profil Header */}
       <View style={styles.header}>
         <View style={styles.profileContainer}>
-          {/* Profilbillede */}
           <Image source={{ uri: "https://i.ibb.co/tMbLN1W/profile-icon-design-free-vector.jpg" }} style={styles.profilePicture} />
 
           <View style={styles.statsContainer}>
@@ -30,7 +27,6 @@ const Profil = ({ navigation }) => {
           </View>
         </View>
 
-        {/* Task Stats */}
         <View style={styles.stats}>
           <View style={styles.statItem}>
             <Text style={styles.statValue}>12</Text>
@@ -39,12 +35,10 @@ const Profil = ({ navigation }) => {
         </View>
       </View>
 
-      {/* Rediger Profil knap */}
       <Button mode="contained" style={styles.button} onPress={() => navigation.navigate("RedigerProfil")}>
         Rediger Profil
       </Button>
 
-      {/* Footer */}
       <Text style={styles.footer}>TaskMaster © 2024</Text>
     </View>
   );

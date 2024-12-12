@@ -12,12 +12,10 @@ import Hjem from "./Hjem";
 import SætOpgaver from "./SætOpgaver";
 import Adminstration from "./Adminstration";
 import Profil from "./Profil";
-import { LinearGradient } from "react-native-linear-gradient"; // Importer LinearGradient
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-// Login-skærm
 function LoginSite({ navigation }) {
   const [AccountAnimation, setAccountAnimation] = useState(true);
   const [LoginSuccessAnimation, setLoginSuccessAnimation] = useState(false);
@@ -26,7 +24,7 @@ function LoginSite({ navigation }) {
     setAccountAnimation(false);
     setLoginSuccessAnimation(true);
     setTimeout(() => {
-      navigation.navigate("Main"); // Naviger til bundnavigationen
+      navigation.navigate("Main");
     }, 2000);
     console.log("Sign In pressed");
   };
@@ -56,7 +54,6 @@ function LoginSite({ navigation }) {
   );
 }
 
-// Bundnavigation
 function BottomTabs() {
   return (
     <Tab.Navigator
@@ -93,7 +90,6 @@ function BottomTabs() {
   );
 }
 
-// Hovednavigator
 export default function App() {
   return (
     <NavigationContainer>

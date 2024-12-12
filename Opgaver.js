@@ -3,7 +3,6 @@ import { StatusBar } from "expo-status-bar";
 import { StyleSheet, Text, View, Image, Dimensions, FlatList } from "react-native";
 import LottieView from "lottie-react-native";
 
-// Eksempel opgaver
 const tasks = [
   {
     id: "1",
@@ -50,7 +49,6 @@ const Opgaver = () => {
         style={styles.animationSize}
       />
 
-      {/* Opgaverne vises samtidigt med animationen */}
       <Text style={styles.title}>Opgaver</Text>
       <Text style={styles.subtitle}>Her er dagens arbejds opgaver!</Text>
 

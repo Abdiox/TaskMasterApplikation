@@ -9,17 +9,14 @@ const Adminstration = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      {/* Animation placed in the top-left corner */}
       {adminstrationAnimation && (
         <View style={styles.animationContainer}>
           <LottieView source={require("./assets/AdminstrationAnimation.json")} autoPlay loop style={styles.animation} />
         </View>
       )}
 
-      {/* Logo centered */}
       <Image source={{ uri: "https://i.ibb.co/B3291RZ/9430b192-e88b-48cd-bf31-31afdc813153.jpg" }} style={styles.logo} resizeMode="contain" />
 
-      {/* Main content */}
       <View style={styles.content}>
         <Text style={styles.title}>Administrationsoversigt</Text>
         <Text style={styles.subtitle}>Hold styr på dine medarbejdere</Text>
@@ -37,7 +34,6 @@ const Adminstration = ({ navigation }) => {
         </Button>
       </View>
 
-      {/* Footer */}
       <Text style={styles.footer}>TaskMaster © 2024</Text>
 
       <StatusBar style="dark" />
@@ -78,7 +74,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     marginTop: 20,
-    justifyContent: "center", // Centering content vertically
+    justifyContent: "center",
   },
 
   title: {
