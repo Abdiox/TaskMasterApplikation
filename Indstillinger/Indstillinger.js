@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
   animationContainer: {
     position: "absolute",
     top: 20,
-    left: 20,
+    left: 168,
     width: 60,
     height: 60,
   },
