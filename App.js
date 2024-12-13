@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {app, db} from "./firebase";
+import {app, db, auth} from "./firebase";
 import { StatusBar } from "expo-status-bar";
 import { StyleSheet, Text, View, Image, Dimensions } from "react-native";
 import { TextInput, Button } from "react-native-paper";
@@ -18,43 +18,36 @@ import Indstillinger from "./Indstillinger/Indstillinger";
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
-const auth = getAuth(app);
 
-async function LoginSite({ navigation }) {
+async function handleSignIn(enteredEmail, enteredPassword, navigation, setAccountAnimation, setLoginSuccessAnimation) {
+  try {
+    const userCredentials = await signInWithEmailAndPassword(auth, enteredEmail, enteredPassword);
+    setAccountAnimation(false);
+    setLoginSuccessAnimation(true);
+
+    setTimeout(() => {
+      navigation.navigate("Main");
+    }, 2000);
+  } catch (error) {
+    console.error("Error signing in:", error);
+    alert(error.message);
+  }
+}
+
+function LoginSite({ navigation }) {
   const [AccountAnimation, setAccountAnimation] = useState(true);
   const [LoginSuccessAnimation, setLoginSuccessAnimation] = useState(false);
   const [enteredEmail, setEmail] = useState("");
   const [enteredPassword, setPassword] = useState("");
-  const [userId, setUserId] = useState("");
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user) {
-        setUserId(user.uid);
         navigation.navigate("Main");
-      } else {
-        setUserId(null);
       }
     });
     return () => unsubscribe();
-  }, []);
-
-
-  const handleSignIn = async () => {
-    try {
-      const userCredentials = await signInWithEmailAndPassword(auth, enteredEmail, enteredPassword);
-      setAccountAnimation(false);
-      setLoginSuccessAnimation(true);
-      setTimeout(() => {
-        navigation.navigate("Main");
-      }, 2000);
-      console.log("Signed in:", userCredentials.user.email);
-    } catch (error) {
-      console.error("Error signing in:", error.message);
-      alert(error.message); // Display an error message for the user
-    }
-  };
-  
+  }, [navigation]);
 
   return (
     <View style={styles.container}>
@@ -69,21 +62,21 @@ async function LoginSite({ navigation }) {
       {AccountAnimation && <LottieView source={require("./assets/AccountAnimation.json")} autoPlay loop style={styles.animationSize} />}
       <Text style={styles.label}>Login:</Text>
       <TextInput 
-  label="Email" 
-  mode="outlined" 
-  style={styles.input} 
-  value={enteredEmail} 
-  onChangeText={(text) => setEmail(text)} 
-/>
-<TextInput 
-  label="Password" 
-  mode="outlined" 
-  secureTextEntry 
-  style={styles.input} 
-  value={enteredPassword} 
-  onChangeText={(text) => setPassword(text)} 
-/>
-      <Button mode="contained" onPress={handleSignIn} buttonColor="#FFA500" textColor="#fff">
+        label="Email" 
+        mode="outlined" 
+        style={styles.input} 
+        value={enteredEmail} 
+        onChangeText={(text) => setEmail(text)} 
+      />
+      <TextInput 
+        label="Password" 
+        mode="outlined" 
+        secureTextEntry 
+        style={styles.input} 
+        value={enteredPassword} 
+        onChangeText={(text) => setPassword(text)} 
+      />
+      <Button mode="contained" onPress={() => handleSignIn(enteredEmail, enteredPassword, navigation, setAccountAnimation, setLoginSuccessAnimation)} buttonColor="#FFA500" textColor="#fff">
         Sign In
       </Button>
       {LoginSuccessAnimation && <LottieView source={require("./assets/LoginSuccesfullyAnimation.json")} autoPlay loop style={styles.animationSize} />}
