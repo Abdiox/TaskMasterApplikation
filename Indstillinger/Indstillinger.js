@@ -22,9 +22,7 @@ const Indstillinger = ({ navigation }) => {
         <Button mode="contained" style={styles.button} labelStyle={styles.buttonText}>
           Ændre adgangskode
         </Button>
-        <Button mode="contained" style={styles.button} labelStyle={styles.buttonText} onPress={() => navigation.navigate("ÆndreSprog")}>
-          Ændre sprog
-        </Button>
+
         <Button mode="contained" style={styles.button} labelStyle={styles.buttonText} onPress={() => navigation.navigate("OmTaskMaster")}>
           Om TaskMaster
         </Button>

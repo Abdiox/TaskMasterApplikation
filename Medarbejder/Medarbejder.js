@@ -36,19 +36,38 @@ const Medarbejder = ({ navigation }) => {
   }, []);
 
   const handleAddUser = async () => {
-    if (!newUserName || !newUserEmail) {
-      Alert.alert("Fejl", "Både navn og e-mail skal udfyldes.");
+    // Ensure all fields are filled out
+    if (!newUserName || !newUserEmail || !newUserNumber || !newUserRole) {
+      Alert.alert("Fejl", "Alle felter skal udfyldes.");
       return;
     }
 
     try {
+      // Add the new user to the Firestore collection with all the fields
       const docRef = await addDoc(collection(db, "users"), {
         name: newUserName,
         email: newUserEmail,
+        number: newUserNumber, // Save the number
+        role: newUserRole, // Save the role
       });
-      setUsers([...users, { id: docRef.id, name: newUserName, email: newUserEmail }]);
+
+      // Add the new user to the local state with the same fields
+      setUsers([
+        ...users,
+        {
+          id: docRef.id,
+          name: newUserName,
+          email: newUserEmail,
+          number: newUserNumber, // Include the number
+          role: newUserRole, // Include the role
+        },
+      ]);
+
+      // Clear the input fields and close the modal
       setNewUserName("");
       setNewUserEmail("");
+      setNewUserNumber("");
+      setNewUserRole("");
       setShowAddUserModal(false);
     } catch (error) {
       console.error("Fejl ved tilføjelse af medarbejder:", error);
@@ -107,7 +126,6 @@ const Medarbejder = ({ navigation }) => {
         />
         <View style={styles.userInfo}>
           <Text style={styles.userName}>{item.name || "Ingen navn"}</Text>
-          <Text style={styles.userEmail}>{item.email || "Ingen e-mail"}</Text>
           <Text style={styles.userRole}>{item.role || "Rolle ikke angivet"}</Text>
         </View>
       </View>
@@ -157,6 +175,7 @@ const Medarbejder = ({ navigation }) => {
               <View style={styles.userInfo}>
                 <Text style={styles.userName}>{selectedUser.name}</Text>
                 <Text style={styles.userEmail}>{selectedUser.email}</Text>
+                <Text style={styles.userRole}>{selectedUser.number}</Text>
                 <Text style={styles.userRole}>{selectedUser.role}</Text>
               </View>
             </View>
