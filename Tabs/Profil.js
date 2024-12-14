@@ -1,20 +1,16 @@
-// Imports
 import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, View, Image, TouchableOpacity } from "react-native";
 import { auth } from "../firebase";
 import LottieView from "lottie-react-native";
 
-// Profile Component
 const Profil = ({ navigation }) => {
   const [userData, setUserData] = useState(null);
 
-  // Fetch authenticated user data
   useEffect(() => {
     const fetchAuthUser = () => {
       const user = auth.currentUser;
       if (user) {
         setUserData({
-          name: user.displayName || "Ingen navn",
           email: user.email,
           uid: user.uid,
           photoURL: user.photoURL || "https://i.ibb.co/QF0dv4P/Pngtree-avatar-icon-profile-icon-member-5247852.png", // Placeholder image
@@ -27,7 +23,19 @@ const Profil = ({ navigation }) => {
     fetchAuthUser();
   }, []);
 
-  // Show loading state if userData is null
+  // Handle Logout
+  const handleLogout = () => {
+    auth
+      .signOut()
+      .then(() => {
+        console.log("User logged out");
+        navigation.navigate("Home");
+      })
+      .catch((error) => {
+        console.error("Error signing out: ", error);
+      });
+  };
+
   if (!userData) {
     return (
       <View style={styles.container}>
@@ -49,13 +57,19 @@ const Profil = ({ navigation }) => {
         <View style={styles.profileContainer}>
           <Image source={{ uri: userData.photoURL }} style={styles.profilePicture} />
           <View style={styles.statsContainer}>
-            <Text style={styles.name}>{userData.name}</Text>
-            <Text style={styles.info}>{userData.email}</Text>
+            {/* <Text style={styles.name}>{userData.name || "Ingen navn"}</Text> */}
+            <Text style={styles.name}>{userData.email}</Text>
             <Text style={styles.info}>Bruger ID:</Text>
             <Text style={styles.uid}>UID: {userData.uid}</Text>
           </View>
         </View>
       </View>
+
+      {/* Logout Button */}
+      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+        <Text style={styles.logoutText}>Log ud</Text>
+      </TouchableOpacity>
+
       <Text style={styles.footer}>TaskMaster © 2024</Text>
     </View>
   );
@@ -136,6 +150,17 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: 18,
     color: "#888",
+  },
+  logoutButton: {
+    backgroundColor: "#FFA500",
+    padding: 12,
+    marginTop: 20,
+    borderRadius: 5,
+  },
+  logoutText: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "bold",
   },
   footer: {
     fontSize: 14,
