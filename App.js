@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {app, db, auth} from "./firebase";
+import { app, db, auth } from "./firebase";
 import { StatusBar } from "expo-status-bar";
 import { StyleSheet, Text, View, Image, Dimensions } from "react-native";
 import { TextInput, Button } from "react-native-paper";
@@ -8,13 +8,14 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { MaterialIcons } from "@expo/vector-icons";
-import  {getAuth, signInWithEmailAndPassword} from "firebase/auth";
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import Opgaver from "./Tabs/Opgaver";
 import Hjem from "./Tabs/Hjem";
 import SætOpgaver from "./Tabs/SætOpgaver";
 import Adminstration from "./Tabs/Adminstration";
 import Profil from "./Tabs/Profil";
 import Indstillinger from "./Indstillinger/Indstillinger";
+import Medarbejder from "./Medarbejder/Medarbejder";
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -61,22 +62,21 @@ function LoginSite({ navigation }) {
       <Text style={styles.title}>Velkommen til TaskMaster!</Text>
       {AccountAnimation && <LottieView source={require("./assets/AccountAnimation.json")} autoPlay loop style={styles.animationSize} />}
       <Text style={styles.label}>Login:</Text>
-      <TextInput 
-        label="Email" 
-        mode="outlined" 
-        style={styles.input} 
-        value={enteredEmail} 
-        onChangeText={(text) => setEmail(text)} 
+      <TextInput label="Email" mode="outlined" style={styles.input} value={enteredEmail} onChangeText={(text) => setEmail(text)} />
+      <TextInput
+        label="Password"
+        mode="outlined"
+        secureTextEntry
+        style={styles.input}
+        value={enteredPassword}
+        onChangeText={(text) => setPassword(text)}
       />
-      <TextInput 
-        label="Password" 
-        mode="outlined" 
-        secureTextEntry 
-        style={styles.input} 
-        value={enteredPassword} 
-        onChangeText={(text) => setPassword(text)} 
-      />
-      <Button mode="contained" onPress={() => handleSignIn(enteredEmail, enteredPassword, navigation, setAccountAnimation, setLoginSuccessAnimation)} buttonColor="#FFA500" textColor="#fff">
+      <Button
+        mode="contained"
+        onPress={() => handleSignIn(enteredEmail, enteredPassword, navigation, setAccountAnimation, setLoginSuccessAnimation)}
+        buttonColor="#FFA500"
+        textColor="#fff"
+      >
         Sign In
       </Button>
       {LoginSuccessAnimation && <LottieView source={require("./assets/LoginSuccesfullyAnimation.json")} autoPlay loop style={styles.animationSize} />}
@@ -130,6 +130,7 @@ export default function App() {
         <Stack.Screen name="Home" component={LoginSite} options={{ headerShown: false }} />
         <Stack.Screen name="Main" component={BottomTabs} options={{ headerShown: false }} />
         <Stack.Screen name="Indstillinger" component={Indstillinger} />
+        <Stack.Screen name="Medarbejder" component={Medarbejder} />
       </Stack.Navigator>
     </NavigationContainer>
   );

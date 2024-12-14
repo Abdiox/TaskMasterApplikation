@@ -52,8 +52,8 @@ const styles = StyleSheet.create({
 
   animationContainer: {
     position: "absolute",
-    top: 20,
-    left: 20,
+    top: 180,
+    left: 152,
     width: 100,
     height: 100,
   },
