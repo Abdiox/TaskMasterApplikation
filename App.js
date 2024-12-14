@@ -16,6 +16,9 @@ import Adminstration from "./Tabs/Adminstration";
 import Profil from "./Tabs/Profil";
 import Indstillinger from "./Indstillinger/Indstillinger";
 import Medarbejder from "./Medarbejder/Medarbejder";
+import OmTaskMaster from "./Indstillinger/OmTaskMaster";
+import Kontakt from "./Indstillinger/Kontakt";
+import ÆndreSprog from "./Indstillinger/ÆndreSprog";
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -131,6 +134,9 @@ export default function App() {
         <Stack.Screen name="Main" component={BottomTabs} options={{ headerShown: false }} />
         <Stack.Screen name="Indstillinger" component={Indstillinger} />
         <Stack.Screen name="Medarbejder" component={Medarbejder} />
+        <Stack.Screen name="OmTaskMaster" component={OmTaskMaster} />
+        <Stack.Screen name="Kontakt" component={Kontakt} />
+        <Stack.Screen name="ÆndreSprog" component={ÆndreSprog} />
       </Stack.Navigator>
     </NavigationContainer>
   );
