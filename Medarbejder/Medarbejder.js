@@ -8,6 +8,8 @@ const Medarbejder = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [newUserName, setNewUserName] = useState("");
   const [newUserEmail, setNewUserEmail] = useState("");
+  const [newUserNumber, setNewUserNumber] = useState("");
+  const [newUserRole, setNewUserRole] = useState("");
   const [editingUserId, setEditingUserId] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const [showAddUserModal, setShowAddUserModal] = useState(false);
@@ -47,7 +49,7 @@ const Medarbejder = ({ navigation }) => {
       setUsers([...users, { id: docRef.id, name: newUserName, email: newUserEmail }]);
       setNewUserName("");
       setNewUserEmail("");
-      setShowAddUserModal(false); // Close modal after adding
+      setShowAddUserModal(false);
     } catch (error) {
       console.error("Fejl ved tilføjelse af medarbejder:", error);
     }
@@ -70,7 +72,7 @@ const Medarbejder = ({ navigation }) => {
       setUsers(updatedUsers);
       setNewUserName("");
       setNewUserEmail("");
-      setShowUserDetailsModal(false); // Close modal after editing
+      setShowUserDetailsModal(false);
     } catch (error) {
       console.error("Fejl ved opdatering af medarbejder:", error);
     }
@@ -83,7 +85,7 @@ const Medarbejder = ({ navigation }) => {
 
       const filteredUsers = users.filter((user) => user.id !== id);
       setUsers(filteredUsers);
-      setShowUserDetailsModal(false); // Close modal after deleting
+      setShowUserDetailsModal(false);
     } catch (error) {
       console.error("Fejl ved sletning af medarbejder:", error);
     }
@@ -106,6 +108,7 @@ const Medarbejder = ({ navigation }) => {
         <View style={styles.userInfo}>
           <Text style={styles.userName}>{item.name || "Ingen navn"}</Text>
           <Text style={styles.userEmail}>{item.email || "Ingen e-mail"}</Text>
+          <Text style={styles.userRole}>{item.role || "Rolle ikke angivet"}</Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -129,6 +132,8 @@ const Medarbejder = ({ navigation }) => {
           <Text style={styles.modalTitle}>Opret ny medarbejder</Text>
           <TextInput style={styles.input} placeholder="Navn" value={newUserName} onChangeText={setNewUserName} />
           <TextInput style={styles.input} placeholder="E-mail" value={newUserEmail} onChangeText={setNewUserEmail} />
+          <TextInput style={styles.input} placeholder="Nummer" value={newUserNumber} onChangeText={setNewUserNumber} />
+          <TextInput style={styles.input} placeholder="Rolle" value={newUserRole} onChangeText={setNewUserRole} />
           <TouchableOpacity style={styles.addButton} onPress={handleAddUser}>
             <Text style={styles.addButtonText}>Tilføj medarbejder</Text>
           </TouchableOpacity>
@@ -142,9 +147,20 @@ const Medarbejder = ({ navigation }) => {
       <Modal visible={showUserDetailsModal} animationType="slide" onRequestClose={() => setShowUserDetailsModal(false)}>
         {selectedUser && (
           <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Medarbejder Information</Text>
-            <Text style={styles.userName}>{selectedUser.name}</Text>
-            <Text style={styles.userEmail}>{selectedUser.email}</Text>
+            <View style={styles.userCard}>
+              <Image
+                source={{
+                  uri: selectedUser.photoURL || "https://i.ibb.co/QF0dv4P/Pngtree-avatar-icon-profile-icon-member-5247852.png",
+                }}
+                style={styles.userImage}
+              />
+              <View style={styles.userInfo}>
+                <Text style={styles.userName}>{selectedUser.name}</Text>
+                <Text style={styles.userEmail}>{selectedUser.email}</Text>
+                <Text style={styles.userRole}>{selectedUser.role}</Text>
+              </View>
+            </View>
+
             <TouchableOpacity
               style={styles.editButton}
               onPress={() => {
@@ -187,7 +203,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   header: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: "bold",
     color: "#333",
     marginBottom: 20,
@@ -204,6 +220,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    alignItems: "center",
   },
   userImage: {
     width: 60,
@@ -212,7 +229,7 @@ const styles = StyleSheet.create({
     marginRight: 15,
   },
   userInfo: {
-    justifyContent: "center",
+    flex: 1,
   },
   userName: {
     fontSize: 18,
@@ -223,6 +240,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#555",
     marginVertical: 2,
+  },
+  userRole: {
+    fontSize: 14,
+    color: "#777",
   },
   backButton: {
     marginTop: 20,
@@ -247,10 +268,11 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "bold",
     marginBottom: 20,
+    textAlign: "center",
   },
   input: {
     height: 40,
-    borderColor: "#ccc",
+    borderColor: "#333",
     borderWidth: 1,
     marginBottom: 10,
     paddingLeft: 8,
