@@ -165,11 +165,11 @@ const Medarbejder = ({ navigation }) => {
 
       {/* Display Add User animation if set */}
       <LottieView
-        ref={animation} // Attach the ref to the animation component
+        ref={animation}
         source={require("../assets/AddUserSuccesAnimation.json")}
         autoPlay={false}
         loop={false}
-        style={styles.animationSize}
+        style={[styles.animationSize, { pointerEvents: "none" }]} // Make the animation non-interactive
       />
 
       {/* Add an overlay with smooth fade-in effect */}
