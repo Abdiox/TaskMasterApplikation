@@ -16,6 +16,7 @@ const Medarbejder = ({ navigation }) => {
   const [showAddUserModal, setShowAddUserModal] = useState(false);
   const [showUserDetailsModal, setShowUserDetailsModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   const animation = useRef(null);
   const deleteAnimation = useRef(null);
@@ -78,8 +79,8 @@ const Medarbejder = ({ navigation }) => {
   };
 
   const handleEditUser = async (id) => {
-    if (!newUserName || !newUserEmail) {
-      Alert.alert("Fejl", "Både navn og e-mail skal udfyldes.");
+    if (!newUserName || !newUserEmail || !newUserNumber || !newUserRole) {
+      Alert.alert("Fejl", "Alle felter skal udfyldes.");
       return;
     }
 
@@ -88,13 +89,28 @@ const Medarbejder = ({ navigation }) => {
       await updateDoc(userRef, {
         name: newUserName,
         email: newUserEmail,
+        number: newUserNumber,
+        role: newUserRole,
       });
 
-      const updatedUsers = users.map((user) => (user.id === id ? { ...user, name: newUserName, email: newUserEmail } : user));
+      const updatedUsers = users.map((user) =>
+        user.id === id
+          ? {
+              ...user,
+              name: newUserName,
+              email: newUserEmail,
+              number: newUserNumber,
+              role: newUserRole,
+            }
+          : user
+      );
+
       setUsers(updatedUsers);
       setNewUserName("");
       setNewUserEmail("");
-      setShowUserDetailsModal(false);
+      setNewUserNumber("");
+      setNewUserRole("");
+      setShowEditModal(false);
     } catch (error) {
       console.error("Fejl ved opdatering af medarbejder:", error);
     }
@@ -188,6 +204,22 @@ const Medarbejder = ({ navigation }) => {
         </View>
       </Modal>
 
+      <Modal visible={showEditModal} animationType="slide" onRequestClose={() => setShowEditModal(false)}>
+        <View style={styles.modalContainer}>
+          <Text style={styles.modalTitle}>Rediger medarbejder</Text>
+          <TextInput style={styles.input} placeholder="Navn" value={newUserName} onChangeText={setNewUserName} />
+          <TextInput style={styles.input} placeholder="E-mail" value={newUserEmail} onChangeText={setNewUserEmail} />
+          <TextInput style={styles.input} placeholder="Nummer" value={newUserNumber} onChangeText={setNewUserNumber} />
+          <TextInput style={styles.input} placeholder="Rolle" value={newUserRole} onChangeText={setNewUserRole} />
+          <TouchableOpacity style={styles.addButton} onPress={() => handleEditUser(editingUserId)}>
+            <Text style={styles.addButtonText}>Gem ændringer</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.closeButton} onPress={() => setShowEditModal(false)}>
+            <Text style={styles.closeButtonText}>Annuller</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
+
       {/* User details modal */}
       <Modal visible={showUserDetailsModal} animationType="slide" onRequestClose={() => setShowUserDetailsModal(false)}>
         {selectedUser && (
@@ -212,8 +244,11 @@ const Medarbejder = ({ navigation }) => {
               onPress={() => {
                 setNewUserName(selectedUser.name);
                 setNewUserEmail(selectedUser.email);
+                setNewUserNumber(selectedUser.number);
+                setNewUserRole(selectedUser.role);
                 setEditingUserId(selectedUser.id);
                 setShowUserDetailsModal(false);
+                setShowEditModal(true);
               }}
             >
               <Text style={styles.editButtonText}>Rediger</Text>
