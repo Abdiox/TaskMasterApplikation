@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, View, Dimensions, FlatList, Modal, TouchableOpacity } from "react-native";
+import { StyleSheet, Text, View, Dimensions, FlatList, Modal, TouchableOpacity, ActivityIndicator } from "react-native";
 import LottieView from "lottie-react-native";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
@@ -15,22 +15,41 @@ const Opgaver = () => {
   const [selectedTask, setSelectedTask] = useState(null);
 
   useEffect(() => {
-    fetchTasks();
+    fetchAssignmentsWithUsers();
   }, []);
 
-  const fetchTasks = async () => {
+  const fetchAssignmentsWithUsers = async () => {
     try {
+      // Hent alle assignments
       const assignmentsCollection = collection(db, "assignments");
-      const querySnapshot = await getDocs(assignmentsCollection);
-      const tasksData = querySnapshot.docs.map((doc) => ({
+      const assignmentsSnapshot = await getDocs(assignmentsCollection);
+      const assignments = assignmentsSnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
-      setTasks(tasksData);
+
+      // Hent alle users
+      const usersCollection = collection(db, "users");
+      const usersSnapshot = await getDocs(usersCollection);
+      const users = usersSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      // Match assignments med users
+      const assignmentsWithUsers = assignments.map((assignment) => {
+        const user = users.find((u) => u.id === assignment.userId);
+        return {
+          ...assignment,
+          user: user || null,
+        };
+      });
+
+      setTasks(assignmentsWithUsers); // Opdater state
+      setLoading(false); // Stop loading
     } catch (error) {
-      console.error("Error fetching tasks:", error);
-    } finally {
-      setLoading(false);
+      console.error("Error fetching data:", error);
+      setLoading(false); // Stop loading, selv ved fejl
     }
   };
 
@@ -40,7 +59,7 @@ const Opgaver = () => {
 
   const formatDate = (timestamp) => {
     if (!timestamp) return "";
-    const date = timestamp.toDate();
+    const date = timestamp instanceof Date ? timestamp : timestamp.toDate();
     return format(date, "dd/MM/yyyy", { locale: da });
   };
 
@@ -53,6 +72,7 @@ const Opgaver = () => {
       }}
     >
       <Text style={styles.taskTitle}>{item.title}</Text>
+      <Text style={styles.userId}>Medarbejder: {item.user ? item.user.name : "Ingen tildelt"}</Text>
       <Text style={styles.taskDetails}>Skal være færdig: {formatDate(item.needsToBedoneBy)}</Text>
     </TouchableOpacity>
   );
@@ -60,6 +80,7 @@ const Opgaver = () => {
   if (loading) {
     return (
       <View style={styles.container}>
+        <ActivityIndicator size="large" color="#007BFF" />
         <Text>Indlæser opgaver...</Text>
       </View>
     );
@@ -69,20 +90,23 @@ const Opgaver = () => {
     <View style={styles.container}>
       <StatusBar style="auto" />
 
-      <LottieView
-        source={require("../assets/TaskAnimation.json")}
-        autoPlay
-        loop={false}
-        onAnimationFinish={handleAnimationFinish}
-        style={styles.animationSize}
-      />
+      {taskAnimation && (
+        <LottieView
+          source={require("../assets/TaskAnimation.json")}
+          autoPlay
+          loop={false}
+          onAnimationFinish={handleAnimationFinish}
+          style={styles.animationSize}
+        />
+      )}
 
-      <Modal visible={showTaskDialog} animationType="slide" transparent={true}>
+      <Modal visible={showTaskDialog} animationType="slide" transparent={true} onRequestClose={() => setShowTaskDialog(false)}>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             {selectedTask && (
               <>
                 <Text style={styles.modalTitle}>{selectedTask.title}</Text>
+                <Text style={styles.userId}>Medarbejder: {selectedTask.user ? selectedTask.user.name : "Ingen tildelt"}</Text>
                 <Text style={styles.modalDetails}>Beskrivelse: {selectedTask.description}</Text>
                 <Text style={styles.modalDetails}>Skal være færdig: {formatDate(selectedTask.needsToBedoneBy)}</Text>
                 <Text style={styles.modalDetails}>Status: {selectedTask.isDone ? "Færdig" : "I gang"}</Text>
@@ -123,6 +147,11 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 16,
     color: "#333",
+  },
+  userId: {
+    fontSize: 16,
+    color: "#777",
+    marginBottom: 4,
   },
   subtitle: {
     fontSize: 16,
