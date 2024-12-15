@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
     color: "#333",
-    marginBottom: 10,
+    marginBottom: -160,
     textAlign: "center",
   },
   userCard: {
@@ -326,27 +326,23 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   animationSize: {
-    width: 250,
-    height: 250,
-    alignSelf: "center",
-    zIndex: 10,
-    position: "absolute",
-    top: "30%",
+    width: 120,
+    height: 100,
+    top: 140,
+    right: -120,
   },
   DeleteAnimationSize: {
     width: 80,
     height: 80,
-    top: -60,
+    top: 10,
     right: -290,
   },
 
   EditAnimationSize: {
-    width: 250,
-    height: 250,
-    alignSelf: "center",
-    zIndex: 10,
-    position: "absolute",
-    top: "30%",
+    width: 100,
+    height: 100,
+    top: 10,
+    right: -140,
   },
 
   userName: {
