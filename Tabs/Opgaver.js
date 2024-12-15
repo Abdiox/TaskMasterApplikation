@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, View, Dimensions, FlatList } from "react-native";
+import { StyleSheet, Text, View, Dimensions, FlatList, Modal, TouchableOpacity } from "react-native";
 import LottieView from "lottie-react-native";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
@@ -11,6 +11,8 @@ const Opgaver = () => {
   const [taskAnimation, setTaskAnimation] = useState(true);
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showTaskDialog, setShowTaskDialog] = useState(false);
+  const [selectedTask, setSelectedTask] = useState(null);
 
   useEffect(() => {
     fetchTasks();
@@ -43,17 +45,16 @@ const Opgaver = () => {
   };
 
   const renderTask = ({ item }) => (
-    <View style={styles.taskCard}>
+    <TouchableOpacity
+      style={styles.taskCard}
+      onPress={() => {
+        setSelectedTask(item);
+        setShowTaskDialog(true);
+      }}
+    >
       <Text style={styles.taskTitle}>{item.title}</Text>
-      <Text style={styles.taskDescription}>{item.description}</Text>
       <Text style={styles.taskDetails}>Skal være færdig: {formatDate(item.needsToBedoneBy)}</Text>
-      <Text style={styles.taskDetails}>Status: {item.isDone ? "Færdig" : "I gang"}</Text>
-      {item.location && (
-        <Text style={styles.taskDetails}>
-          Lokation: {item.location.latitude}, {item.location.longitude}
-        </Text>
-      )}
-    </View>
+    </TouchableOpacity>
   );
 
   if (loading) {
@@ -75,6 +76,29 @@ const Opgaver = () => {
         onAnimationFinish={handleAnimationFinish}
         style={styles.animationSize}
       />
+
+      <Modal visible={showTaskDialog} animationType="slide" transparent={true}>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            {selectedTask && (
+              <>
+                <Text style={styles.modalTitle}>{selectedTask.title}</Text>
+                <Text style={styles.modalDetails}>Beskrivelse: {selectedTask.description}</Text>
+                <Text style={styles.modalDetails}>Skal være færdig: {formatDate(selectedTask.needsToBedoneBy)}</Text>
+                <Text style={styles.modalDetails}>Status: {selectedTask.isDone ? "Færdig" : "I gang"}</Text>
+                {selectedTask.location && (
+                  <Text style={styles.modalDetails}>
+                    Lokation: {selectedTask.location.latitude}, {selectedTask.location.longitude}
+                  </Text>
+                )}
+              </>
+            )}
+            <TouchableOpacity onPress={() => setShowTaskDialog(false)}>
+              <Text style={styles.closeButton}>Luk</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       <Text style={styles.title}>Opgaver</Text>
       <Text style={styles.subtitle}>Her er dagens arbejdsopgaver!</Text>
@@ -126,11 +150,6 @@ const styles = StyleSheet.create({
     color: "#333",
     marginBottom: 8,
   },
-  taskDescription: {
-    fontSize: 16,
-    color: "#555",
-    marginBottom: 8,
-  },
   taskDetails: {
     fontSize: 14,
     color: "#777",
@@ -140,6 +159,39 @@ const styles = StyleSheet.create({
     width: Dimensions.get("window").width * 0.8,
     height: Dimensions.get("window").width * 0.8,
     marginBottom: 20,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    padding: 16,
+    width: Dimensions.get("window").width * 0.9,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 16,
+  },
+  modalDetails: {
+    fontSize: 16,
+    color: "#333",
+    marginBottom: 8,
+  },
+  closeButton: {
+    fontSize: 16,
+    color: "#007BFF",
+    marginTop: 16,
+    textAlign: "center",
+  },
+  footerText: {
+    marginTop: 20,
+    fontSize: 12,
+    color: "#aaa",
   },
 });
 
