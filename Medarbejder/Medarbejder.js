@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { StyleSheet, Text, View, FlatList, Image, TouchableOpacity, Modal, TextInput, Alert } from "react-native";
 import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { db } from "../firebase";
+import LottieView from "lottie-react-native";
 
 const Medarbejder = ({ navigation }) => {
   const [users, setUsers] = useState([]);
@@ -14,6 +15,7 @@ const Medarbejder = ({ navigation }) => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [showAddUserModal, setShowAddUserModal] = useState(false);
   const [showUserDetailsModal, setShowUserDetailsModal] = useState(false);
+  const animation = useRef(null); // Create a ref for the LottieView animation
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -36,34 +38,34 @@ const Medarbejder = ({ navigation }) => {
   }, []);
 
   const handleAddUser = async () => {
-    // Ensure all fields are filled out
     if (!newUserName || !newUserEmail || !newUserNumber || !newUserRole) {
       Alert.alert("Fejl", "Alle felter skal udfyldes.");
       return;
     }
 
     try {
-      // Add the new user to the Firestore collection with all the fields
       const docRef = await addDoc(collection(db, "users"), {
         name: newUserName,
         email: newUserEmail,
-        number: newUserNumber, // Save the number
-        role: newUserRole, // Save the role
+        number: newUserNumber,
+        role: newUserRole,
       });
 
-      // Add the new user to the local state with the same fields
       setUsers([
         ...users,
         {
           id: docRef.id,
           name: newUserName,
           email: newUserEmail,
-          number: newUserNumber, // Include the number
-          role: newUserRole, // Include the role
+          number: newUserNumber,
+          role: newUserRole,
         },
       ]);
 
-      // Clear the input fields and close the modal
+      // Start animation every time a new user is added
+      animation.current.play();
+
+      // Clear input fields and close the modal
       setNewUserName("");
       setNewUserEmail("");
       setNewUserNumber("");
@@ -161,6 +163,27 @@ const Medarbejder = ({ navigation }) => {
         </View>
       </Modal>
 
+      {/* Display Add User animation if set */}
+      <LottieView
+        ref={animation} // Attach the ref to the animation component
+        source={require("../assets/AddUserSuccesAnimation.json")}
+        autoPlay={false}
+        loop={false}
+        style={styles.animationSize}
+      />
+
+      {/* Add an overlay with smooth fade-in effect */}
+      {loading && (
+        <View style={styles.overlay}>
+          <LottieView
+            ref={animation} // Attach the ref to the animation component
+            source={require("../assets/AddUserSuccesAnimation.json")}
+            autoPlay={true}
+            loop={false}
+            style={styles.animationSize}
+          />
+        </View>
+      )}
       {/* User details modal */}
       <Modal visible={showUserDetailsModal} animationType="slide" onRequestClose={() => setShowUserDetailsModal(false)}>
         {selectedUser && (
@@ -218,14 +241,14 @@ const Medarbejder = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F0F4F8",
+    backgroundColor: "#f5f5f5",
     padding: 20,
   },
   header: {
     fontSize: 24,
     fontWeight: "bold",
     color: "#333",
-    marginBottom: 20,
+    marginBottom: 10,
     textAlign: "center",
   },
   userCard: {
@@ -250,6 +273,28 @@ const styles = StyleSheet.create({
   userInfo: {
     flex: 1,
   },
+
+  animationSize: {
+    width: 250,
+    height: 250,
+    alignSelf: "center", // Centers the animation
+    zIndex: 10, // Brings the animation to the front
+    position: "absolute",
+    top: "30%", // Adjust based on where you want it to appear on the screen
+  },
+
+  overlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.3)", // Semi-transparent black overlay
+    justifyContent: "center", // Center the animation
+    alignItems: "center",
+    zIndex: 5, // Ensures the overlay is above the content
+  },
+
   userName: {
     fontSize: 18,
     fontWeight: "bold",
@@ -315,36 +360,15 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 5,
     alignItems: "center",
+    width: "100%",
   },
   closeButtonText: {
-    color: "#FFF",
-    fontSize: 16,
-  },
-  editButton: {
-    backgroundColor: "#FFA500",
-    padding: 10,
-    borderRadius: 5,
-    alignItems: "center",
-    marginTop: 10,
-  },
-  editButtonText: {
-    color: "#FFF",
-    fontSize: 16,
-  },
-  deleteButton: {
-    backgroundColor: "red",
-    padding: 10,
-    borderRadius: 5,
-    alignItems: "center",
-    marginTop: 10,
-  },
-  deleteButtonText: {
-    color: "#FFF",
+    color: "#333",
     fontSize: 16,
   },
   addUserButton: {
     position: "absolute",
-    top: 8,
+    bottom: 90,
     right: 20,
     backgroundColor: "#FFA500",
     width: 60,
@@ -352,21 +376,50 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     justifyContent: "center",
     alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    zIndex: 999,
   },
   addUserButtonText: {
     color: "#FFF",
-    fontSize: 30,
-    fontWeight: "bold",
+    fontSize: 24,
+  },
+  editButton: {
+    backgroundColor: "#FFA500",
+    padding: 10,
+    borderRadius: 5,
+    alignItems: "center",
+    width: "100%",
+    marginTop: 20,
+  },
+  editButtonText: {
+    color: "#FFF",
+    fontSize: 16,
+  },
+  deleteButton: {
+    backgroundColor: "#FF6347",
+    padding: 10,
+    borderRadius: 5,
+    alignItems: "center",
+    width: "100%",
+    marginTop: 10,
+  },
+  deleteButtonText: {
+    color: "#FFF",
+    fontSize: 16,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#F0F4F8",
   },
   loadingText: {
     fontSize: 18,
-    color: "#555",
+    fontWeight: "bold",
+    color: "#333",
   },
 });
 
