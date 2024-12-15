@@ -15,7 +15,10 @@ const Medarbejder = ({ navigation }) => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [showAddUserModal, setShowAddUserModal] = useState(false);
   const [showUserDetailsModal, setShowUserDetailsModal] = useState(false);
-  const animation = useRef(null); // Create a ref for the LottieView animation
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const animation = useRef(null);
+  const deleteAnimation = useRef(null);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -62,10 +65,8 @@ const Medarbejder = ({ navigation }) => {
         },
       ]);
 
-      // Start animation every time a new user is added
       animation.current.play();
 
-      // Clear input fields and close the modal
       setNewUserName("");
       setNewUserEmail("");
       setNewUserNumber("");
@@ -102,13 +103,20 @@ const Medarbejder = ({ navigation }) => {
   const handleDeleteUser = async (id) => {
     try {
       const userRef = doc(db, "users", id);
+      setIsDeleting(true);
+      deleteAnimation.current.play();
+
       await deleteDoc(userRef);
 
-      const filteredUsers = users.filter((user) => user.id !== id);
-      setUsers(filteredUsers);
-      setShowUserDetailsModal(false);
+      setTimeout(() => {
+        const filteredUsers = users.filter((user) => user.id !== id);
+        setUsers(filteredUsers);
+        setIsDeleting(false);
+        setShowUserDetailsModal(false);
+      }, 300);
     } catch (error) {
       console.error("Fejl ved sletning af medarbejder:", error);
+      setIsDeleting(false);
     }
   };
 
@@ -146,6 +154,23 @@ const Medarbejder = ({ navigation }) => {
     <View style={styles.container}>
       <Text style={styles.header}>Medarbejdere</Text>
 
+      {/* Animations */}
+      <LottieView
+        ref={animation}
+        source={require("../assets/AddUserSuccesAnimation.json")}
+        autoPlay={false}
+        loop={false}
+        style={styles.animationSize}
+      />
+
+      <LottieView
+        ref={deleteAnimation}
+        source={require("../assets/DeletedUserAnimation.json")}
+        autoPlay={false}
+        loop={false}
+        style={styles.DeleteAnimationSize}
+      />
+
       {/* Add user modal */}
       <Modal visible={showAddUserModal} animationType="slide" onRequestClose={() => setShowAddUserModal(false)}>
         <View style={styles.modalContainer}>
@@ -163,27 +188,6 @@ const Medarbejder = ({ navigation }) => {
         </View>
       </Modal>
 
-      {/* Display Add User animation if set */}
-      <LottieView
-        ref={animation}
-        source={require("../assets/AddUserSuccesAnimation.json")}
-        autoPlay={false}
-        loop={false}
-        style={[styles.animationSize, { pointerEvents: "none" }]} // Make the animation non-interactive
-      />
-
-      {/* Add an overlay with smooth fade-in effect */}
-      {loading && (
-        <View style={styles.overlay}>
-          <LottieView
-            ref={animation} // Attach the ref to the animation component
-            source={require("../assets/AddUserSuccesAnimation.json")}
-            autoPlay={true}
-            loop={false}
-            style={styles.animationSize}
-          />
-        </View>
-      )}
       {/* User details modal */}
       <Modal visible={showUserDetailsModal} animationType="slide" onRequestClose={() => setShowUserDetailsModal(false)}>
         {selectedUser && (
@@ -214,9 +218,11 @@ const Medarbejder = ({ navigation }) => {
             >
               <Text style={styles.editButtonText}>Rediger</Text>
             </TouchableOpacity>
+
             <TouchableOpacity style={styles.deleteButton} onPress={() => handleDeleteUser(selectedUser.id)}>
               <Text style={styles.deleteButtonText}>Slet</Text>
             </TouchableOpacity>
+
             <TouchableOpacity style={styles.closeButton} onPress={() => setShowUserDetailsModal(false)}>
               <Text style={styles.closeButtonText}>Luk</Text>
             </TouchableOpacity>
@@ -273,28 +279,20 @@ const styles = StyleSheet.create({
   userInfo: {
     flex: 1,
   },
-
   animationSize: {
     width: 250,
     height: 250,
-    alignSelf: "center", // Centers the animation
-    zIndex: 10, // Brings the animation to the front
+    alignSelf: "center",
+    zIndex: 10,
     position: "absolute",
-    top: "30%", // Adjust based on where you want it to appear on the screen
+    top: "30%",
   },
-
-  overlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.3)", // Semi-transparent black overlay
-    justifyContent: "center", // Center the animation
-    alignItems: "center",
-    zIndex: 5, // Ensures the overlay is above the content
+  DeleteAnimationSize: {
+    width: 80,
+    height: 80,
+    top: -60,
+    right: -290,
   },
-
   userName: {
     fontSize: 18,
     fontWeight: "bold",
