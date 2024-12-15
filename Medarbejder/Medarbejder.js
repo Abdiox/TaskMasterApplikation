@@ -20,6 +20,7 @@ const Medarbejder = ({ navigation }) => {
 
   const animation = useRef(null);
   const deleteAnimation = useRef(null);
+  const editAnimation = useRef(null);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -105,6 +106,8 @@ const Medarbejder = ({ navigation }) => {
           : user
       );
 
+      editAnimation.current.play();
+
       setUsers(updatedUsers);
       setNewUserName("");
       setNewUserEmail("");
@@ -185,6 +188,14 @@ const Medarbejder = ({ navigation }) => {
         autoPlay={false}
         loop={false}
         style={styles.DeleteAnimationSize}
+      />
+
+      <LottieView
+        ref={editAnimation}
+        source={require("../assets/EditUserAnimation.json")}
+        autoPlay={false}
+        loop={false}
+        style={styles.EditAnimationSize}
       />
 
       {/* Add user modal */}
@@ -328,6 +339,16 @@ const styles = StyleSheet.create({
     top: -60,
     right: -290,
   },
+
+  EditAnimationSize: {
+    width: 250,
+    height: 250,
+    alignSelf: "center",
+    zIndex: 10,
+    position: "absolute",
+    top: "30%",
+  },
+
   userName: {
     fontSize: 18,
     fontWeight: "bold",
