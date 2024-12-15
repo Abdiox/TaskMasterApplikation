@@ -1,41 +1,68 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, View, Image, Dimensions, FlatList } from "react-native";
+import { StyleSheet, Text, View, Dimensions, FlatList } from "react-native";
 import LottieView from "lottie-react-native";
-
-const tasks = [
-  {
-    id: "1",
-    task: "Opsætning af tagkonstruktion",
-    assignedTo: "Henrik",
-    dueDate: "15/12/2024",
-  },
-  {
-    id: "2",
-    task: "Montering af vinduer og døre",
-    assignedTo: "Kasper",
-    dueDate: "18/12/2024",
-  },
-  {
-    id: "3",
-    task: "Udskiftning af beskadiget træværk",
-    assignedTo: "Martin",
-    dueDate: "20/12/2024",
-  },
-  {
-    id: "4",
-    task: "Justering af døre og skabslåger",
-    assignedTo: "Lars",
-    dueDate: "22/12/2024",
-  },
-];
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../firebase";
+import { format } from "date-fns";
+import { da } from "date-fns/locale";
 
 const Opgaver = () => {
   const [taskAnimation, setTaskAnimation] = useState(true);
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchTasks();
+  }, []);
+
+  const fetchTasks = async () => {
+    try {
+      const assignmentsCollection = collection(db, "assignments");
+      const querySnapshot = await getDocs(assignmentsCollection);
+      const tasksData = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setTasks(tasksData);
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleAnimationFinish = () => {
     setTaskAnimation(false);
   };
+
+  const formatDate = (timestamp) => {
+    if (!timestamp) return "";
+    const date = timestamp.toDate();
+    return format(date, "dd/MM/yyyy", { locale: da });
+  };
+
+  const renderTask = ({ item }) => (
+    <View style={styles.taskCard}>
+      <Text style={styles.taskTitle}>{item.title}</Text>
+      <Text style={styles.taskDescription}>{item.description}</Text>
+      <Text style={styles.taskDetails}>Skal være færdig: {formatDate(item.needsToBedoneBy)}</Text>
+      <Text style={styles.taskDetails}>Status: {item.isDone ? "Færdig" : "I gang"}</Text>
+      {item.location && (
+        <Text style={styles.taskDetails}>
+          Lokation: {item.location.latitude}, {item.location.longitude}
+        </Text>
+      )}
+    </View>
+  );
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <Text>Indlæser opgaver...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -50,19 +77,10 @@ const Opgaver = () => {
       />
 
       <Text style={styles.title}>Opgaver</Text>
-      <Text style={styles.subtitle}>Her er dagens arbejds opgaver!</Text>
+      <Text style={styles.subtitle}>Her er dagens arbejdsopgaver!</Text>
 
-      <FlatList
-        data={tasks}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View style={styles.taskCard}>
-            <Text style={styles.taskTitle}>{item.task}</Text>
-            <Text style={styles.taskDetails}>Tildelt til: {item.assignedTo}</Text>
-            <Text style={styles.taskDetails}>Senest: {item.dueDate}</Text>
-          </View>
-        )}
-      />
+      <FlatList data={tasks} keyExtractor={(item) => item.id} renderItem={renderTask} style={styles.list} />
+
       <Text style={styles.footerText}>TaskMaster © 2024</Text>
     </View>
   );
@@ -87,6 +105,9 @@ const styles = StyleSheet.create({
     color: "#555",
     marginBottom: 20,
   },
+  list: {
+    width: "100%",
+  },
   taskCard: {
     backgroundColor: "#fff",
     borderRadius: 8,
@@ -103,6 +124,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     color: "#333",
+    marginBottom: 8,
+  },
+  taskDescription: {
+    fontSize: 16,
+    color: "#555",
     marginBottom: 8,
   },
   taskDetails: {
