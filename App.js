@@ -9,6 +9,7 @@ import { createStackNavigator } from "@react-navigation/stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { MaterialIcons } from "@expo/vector-icons";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
 import Opgaver from "./Tabs/Opgaver";
 import Hjem from "./Tabs/Hjem";
 import SætOpgaver from "./Tabs/SætOpgaver";
@@ -22,18 +23,47 @@ import Kontakt from "./Indstillinger/Kontakt";
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-async function handleSignIn(enteredEmail, enteredPassword, navigation, setAccountAnimation, setLoginSuccessAnimation) {
+async function handleSignIn(
+  enteredEmail,
+  enteredPassword,
+  navigation,
+  setAccountAnimation,
+  setLoginSuccessAnimation
+) {
   try {
-    const userCredentials = await signInWithEmailAndPassword(auth, enteredEmail, enteredPassword);
-    setAccountAnimation(false);
-    setLoginSuccessAnimation(true);
+    // Log ind med email og password
+    const userCredentials = await signInWithEmailAndPassword(
+      auth,
+      enteredEmail,
+      enteredPassword
+    );
+    const user = userCredentials.user; // Bruger objekt fra Auth
+    const uid = user.uid; // Hent UID for den indloggede bruger
 
-    setTimeout(() => {
-      navigation.navigate("Main");
-    }, 2000);
+    console.log("Bruger UID:", uid);
+
+    // Hent brugerdata fra Firestore baseret på UID
+    const userDocRef = doc(db, "users", uid); // 'users' er samlingen
+    const userDocSnap = await getDoc(userDocRef);
+
+    if (userDocSnap.exists()) {
+      const userData = userDocSnap.data();
+      console.log("Brugerdetaljer:", userData);
+
+      // Eksempel: Gem brugerdata i en state, context eller navigation-parametre
+      setAccountAnimation(false);
+      setLoginSuccessAnimation(true);
+
+      setTimeout(() => {
+        navigation.navigate("Main", { userData }); // Sender brugerdata videre
+      }, 2000);
+    } else {
+      console.error("Ingen brugerdata fundet i Firestore.");
+      alert("Ingen brugerdata fundet. Kontakt administrator.");
+    }
   } catch (error) {
-    console.error("Error signing in:", error);
-    alert(error.message);
+    console.error("Fejl ved login:", error);
+    alert("Forkert email eller adgangskode.");
   }
 }
 
@@ -89,7 +119,9 @@ function LoginSite({ navigation }) {
   );
 }
 
-function BottomTabs() {
+function BottomTabs({ route }) {
+  const { userData } = route.params || {}; // Hent brugerdata fra navigationen
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -106,7 +138,6 @@ function BottomTabs() {
           } else if (route.name === "Profil") {
             iconName = "person";
           }
-
           return <MaterialIcons name={iconName} size={size} color={color} />;
         },
         tabBarActiveTintColor: "#FFA500",
@@ -119,11 +150,22 @@ function BottomTabs() {
       <Tab.Screen name="Hjem" component={Hjem} />
       <Tab.Screen name="Opgaver" component={Opgaver} />
       <Tab.Screen name="SætOpgaver" component={SætOpgaver} />
-      <Tab.Screen name="Adminstration" component={Adminstration} />
-      <Tab.Screen name="Profil" component={Profil} />
+
+      {/* Vis kun fanen Adminstration hvis brugerens rolle er "Byggeleder" */}
+      {userData?.role === "Byggeleder" && (
+        <Tab.Screen name="Adminstration" component={Adminstration} />
+      )}
+
+      {/* Send userData via initialParams */}
+      <Tab.Screen
+        name="Profil"
+        component={Profil}
+        initialParams={{ userData }}
+      />
     </Tab.Navigator>
   );
 }
+
 
 export default function App() {
   return (

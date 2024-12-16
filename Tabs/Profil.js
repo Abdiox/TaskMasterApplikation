@@ -1,27 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { StyleSheet, Text, View, Image, TouchableOpacity } from "react-native";
 import { auth } from "../firebase";
 import LottieView from "lottie-react-native";
 
-const Profil = ({ navigation }) => {
-  const [userData, setUserData] = useState(null);
-
-  useEffect(() => {
-    const fetchAuthUser = () => {
-      const user = auth.currentUser;
-      if (user) {
-        setUserData({
-          email: user.email,
-          uid: user.uid,
-          photoURL: user.photoURL || "https://i.ibb.co/QF0dv4P/Pngtree-avatar-icon-profile-icon-member-5247852.png", // Placeholder image
-        });
-      } else {
-        console.log("Ingen bruger logget ind.");
-      }
-    };
-
-    fetchAuthUser();
-  }, []);
+const Profil = ({ navigation, route }) => {
+  const { userData } = route.params || {}; // Hent userData fra navigationens params
 
   // Handle Logout
   const handleLogout = () => {
@@ -29,13 +12,14 @@ const Profil = ({ navigation }) => {
       .signOut()
       .then(() => {
         console.log("User logged out");
-        navigation.navigate("Home");
+        navigation.navigate("Home"); // Send brugeren tilbage til login
       })
       .catch((error) => {
         console.error("Error signing out: ", error);
       });
   };
 
+  // Hvis userData ikke er hentet endnu, vis en loading-tekst
   if (!userData) {
     return (
       <View style={styles.container}>
@@ -46,18 +30,32 @@ const Profil = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+      {/* Animationer */}
       <View style={styles.animationContainer}>
-        <LottieView source={require("../assets/ProfilAnimation.json")} autoPlay loop style={styles.profilAnimation} />
+        <LottieView
+          source={require("../assets/ProfilAnimation.json")}
+          autoPlay
+          loop
+          style={styles.profilAnimation}
+        />
         <TouchableOpacity onPress={() => navigation.navigate("Indstillinger")}>
-          <LottieView source={require("../assets/IndstillingerAnimation.json")} autoPlay loop style={styles.indstillingerAnimation} />
+          <LottieView
+            source={require("../assets/IndstillingerAnimation.json")}
+            autoPlay
+            loop
+            style={styles.indstillingerAnimation}
+          />
         </TouchableOpacity>
       </View>
 
+      {/* Profil Header */}
       <View style={styles.header}>
         <View style={styles.profileContainer}>
-          <Image source={{ uri: userData.photoURL }} style={styles.profilePicture} />
+          <Image
+            source={{ uri: userData.imageUrl }} // Profilbillede fra userData
+            style={styles.profilePicture}
+          />
           <View style={styles.statsContainer}>
-            {/* <Text style={styles.name}>{userData.name || "Ingen navn"}</Text> */}
             <Text style={styles.name}>{userData.email}</Text>
             <Text style={styles.info}>Bruger ID:</Text>
             <Text style={styles.uid}>UID: {userData.uid}</Text>
@@ -65,11 +63,12 @@ const Profil = ({ navigation }) => {
         </View>
       </View>
 
-      {/* Logout Button */}
+      {/* Logout-knap */}
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
         <Text style={styles.logoutText}>Log ud</Text>
       </TouchableOpacity>
 
+      {/* Footer */}
       <Text style={styles.footer}>TaskMaster © 2024</Text>
     </View>
   );
@@ -93,9 +92,9 @@ const styles = StyleSheet.create({
   },
   profilAnimation: {
     width: 50,
-    right: 260,
     height: 50,
     marginRight: 10,
+    right: 260,
   },
   indstillingerAnimation: {
     width: 50,
