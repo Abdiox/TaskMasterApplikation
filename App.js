@@ -74,13 +74,31 @@ function LoginSite({ navigation }) {
   const [enteredPassword, setPassword] = useState("");
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
       if (user) {
-        navigation.navigate("Main");
+        try {
+          const userDocRef = doc(db, "users", user.uid);
+          const userDocSnap = await getDoc(userDocRef);
+  
+          if (userDocSnap.exists()) {
+            const userData = userDocSnap.data();
+            console.log("Auto-login brugerdata:", userData);
+  
+            // Navigér til Main med brugerdata
+            navigation.navigate("Main", { userData });
+          } else {
+            console.error("Brugerdata findes ikke.");
+            alert("Fejl ved hentning af brugerdata. Kontakt administrator.");
+          }
+        } catch (error) {
+          console.error("Fejl ved auto-login:", error);
+        }
       }
     });
+  
     return () => unsubscribe();
   }, [navigation]);
+  
 
   return (
     <View style={styles.container}>
@@ -149,14 +167,17 @@ function BottomTabs({ route }) {
     >
       <Tab.Screen name="Hjem" component={Hjem} />
       <Tab.Screen name="Opgaver" component={Opgaver} />
-      <Tab.Screen name="SætOpgaver" component={SætOpgaver} />
+
+      {/* Vis kun fanen "SætOpgaver" hvis brugerens rolle er "Byggeleder" */}
+      {userData?.role === "Byggeleder" && (
+        <Tab.Screen name="SætOpgaver" component={SætOpgaver} />
+      )}
 
       {/* Vis kun fanen Adminstration hvis brugerens rolle er "Byggeleder" */}
       {userData?.role === "Byggeleder" && (
         <Tab.Screen name="Adminstration" component={Adminstration} />
       )}
 
-      {/* Send userData via initialParams */}
       <Tab.Screen
         name="Profil"
         component={Profil}

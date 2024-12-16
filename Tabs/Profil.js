@@ -57,6 +57,8 @@ const Profil = ({ navigation, route }) => {
           />
           <View style={styles.statsContainer}>
             <Text style={styles.name}>{userData.email}</Text>
+            <Text style={styles.info}>Navn: {userData.name}</Text>
+            <Text style={styles.info}>rolle: {userData.role}</Text>
             <Text style={styles.info}>Bruger ID:</Text>
             <Text style={styles.uid}>UID: {userData.uid}</Text>
           </View>
