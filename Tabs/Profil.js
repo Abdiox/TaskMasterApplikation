@@ -32,19 +32,9 @@ const Profil = ({ navigation, route }) => {
     <View style={styles.container}>
       {/* Animationer */}
       <View style={styles.animationContainer}>
-        <LottieView
-          source={require("../assets/ProfilAnimation.json")}
-          autoPlay
-          loop
-          style={styles.profilAnimation}
-        />
+        <LottieView source={require("../assets/ProfilAnimation.json")} autoPlay loop style={styles.profilAnimation} />
         <TouchableOpacity onPress={() => navigation.navigate("Indstillinger")}>
-          <LottieView
-            source={require("../assets/IndstillingerAnimation.json")}
-            autoPlay
-            loop
-            style={styles.indstillingerAnimation}
-          />
+          <LottieView source={require("../assets/IndstillingerAnimation.json")} autoPlay loop style={styles.indstillingerAnimation} />
         </TouchableOpacity>
       </View>
 
