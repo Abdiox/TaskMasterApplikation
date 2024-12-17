@@ -48,14 +48,17 @@ async function handleSignIn(
 
     if (userDocSnap.exists()) {
       const userData = userDocSnap.data();
-      console.log("Brugerdetaljer:", userData);
+
+      // Log brugerdata og UID før navigation
+      console.log("Brugerdata før navigation:", { ...userData, uid });
 
       // Eksempel: Gem brugerdata i en state, context eller navigation-parametre
       setAccountAnimation(false);
       setLoginSuccessAnimation(true);
 
+      // Naviger videre og inkluder både userData og uid
       setTimeout(() => {
-        navigation.navigate("Main", { userData }); // Sender brugerdata videre
+        navigation.navigate("Main", { userData: { ...userData, uid } });
       }, 2000);
     } else {
       console.error("Ingen brugerdata fundet i Firestore.");
@@ -77,7 +80,8 @@ function LoginSite({ navigation }) {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       if (user) {
         try {
-          const userDocRef = doc(db, "users", user.uid);
+          const uid = user.uid;
+          const userDocRef = doc(db, "users", uid);
           const userDocSnap = await getDoc(userDocRef);
   
           if (userDocSnap.exists()) {
@@ -85,7 +89,7 @@ function LoginSite({ navigation }) {
             console.log("Auto-login brugerdata:", userData);
   
             // Navigér til Main med brugerdata
-            navigation.navigate("Main", { userData });
+            navigation.navigate("Main", { userData: { ...userData, uid } });
           } else {
             console.error("Brugerdata findes ikke.");
             alert("Fejl ved hentning af brugerdata. Kontakt administrator.");
@@ -140,6 +144,10 @@ function LoginSite({ navigation }) {
 function BottomTabs({ route }) {
   const { userData } = route.params || {}; // Hent brugerdata fra navigationen
 
+  // Debugging log for userData og uid
+  console.log("userData i BottomTabs:", userData);
+  console.log("UID i BottomTabs:", userData?.uid);
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -166,8 +174,8 @@ function BottomTabs({ route }) {
       })}
     >
       <Tab.Screen name="Hjem" component={Hjem} />
-      <Tab.Screen name="Opgaver" component={Opgaver} />
-
+      <Tab.Screen name="Opgaver" component={Opgaver} initialParams={{ userData }} />
+      
       {/* Vis kun fanen "SætOpgaver" hvis brugerens rolle er "Byggeleder" */}
       {userData?.role === "Byggeleder" && (
         <Tab.Screen name="SætOpgaver" component={SætOpgaver} />
@@ -186,7 +194,6 @@ function BottomTabs({ route }) {
     </Tab.Navigator>
   );
 }
-
 
 export default function App() {
   return (
