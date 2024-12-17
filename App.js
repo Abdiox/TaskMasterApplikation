@@ -144,10 +144,6 @@ function LoginSite({ navigation }) {
 function BottomTabs({ route }) {
   const { userData } = route.params || {}; // Hent brugerdata fra navigationen
 
-  // Debugging log for userData og uid
-  console.log("userData i BottomTabs:", userData);
-  console.log("UID i BottomTabs:", userData?.uid);
-
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
