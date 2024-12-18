@@ -28,6 +28,17 @@ const Opgaver = ({ navigation, route }) => {
 
   const fetchAssignmentsWithUsers = async () => {
     try {
+
+      if (userData.role === "Byggeleder") {
+        const assignmentsRef = collection(db, "assignments");
+        const querySnapshot = await getDocs(assignmentsRef);
+        const userAssignments = [];
+        querySnapshot.forEach((doc) => {
+          userAssignments.push({ id: doc.id, ...doc.data() });
+        });
+        setTasks(userAssignments);
+        setLoading(false);
+      } else {
       setLoading(true);
   
       // Hent brugerens userId fra route.params.userData
@@ -52,6 +63,8 @@ const Opgaver = ({ navigation, route }) => {
   
       setTasks(userAssignments); // Opdater state med opgaver
       setLoading(false);
+    }
+
     } catch (error) {
       console.error("Fejl ved hentning af opgaver:", error);
       setLoading(false);
