@@ -2,12 +2,15 @@ import React, { useState, useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
 import { StyleSheet, Text, View, Dimensions, FlatList, Modal, TouchableOpacity, ActivityIndicator } from "react-native";
 import LottieView from "lottie-react-native";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../firebase";
 import { format } from "date-fns";
 import { da } from "date-fns/locale";
 
-const Opgaver = () => {
+const Opgaver = ({ navigation, route }) => {
+  const { userData } = route.params || {}; 
+  console.log("userData på opgaver side", userData);
+
   const [taskAnimation, setTaskAnimation] = useState(true);
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -15,41 +18,43 @@ const Opgaver = () => {
   const [selectedTask, setSelectedTask] = useState(null);
 
   useEffect(() => {
-    fetchAssignmentsWithUsers();
-  }, []);
+    if (userData) {
+      fetchAssignmentsWithUsers();
+    } else {
+      console.error("userData er ikke tilgængeligt i Opgaver.js");
+    }
+  }, [userData]); // Sørg for at køre funktionen, når userData ændres
+  
 
   const fetchAssignmentsWithUsers = async () => {
     try {
-      // Hent alle assignments
-      const assignmentsCollection = collection(db, "assignments");
-      const assignmentsSnapshot = await getDocs(assignmentsCollection);
-      const assignments = assignmentsSnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-
-      // Hent alle users
-      const usersCollection = collection(db, "users");
-      const usersSnapshot = await getDocs(usersCollection);
-      const users = usersSnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-
-      // Match assignments med users
-      const assignmentsWithUsers = assignments.map((assignment) => {
-        const user = users.find((u) => u.id === assignment.userId);
-        return {
-          ...assignment,
-          user: user || null,
-        };
+      setLoading(true);
+  
+      // Hent brugerens userId fra route.params.userData
+      const userId = userData?.uid;
+  
+      if (!userId) {
+        console.error("Ingen bruger-id fundet.");
+        return;
+      }
+  
+      // Firestore-query: Hent kun assignments for den loggede bruger
+      const assignmentsRef = collection(db, "assignments");
+      const q = query(assignmentsRef, where("userId", "==", userId));
+  
+      const querySnapshot = await getDocs(q);
+  
+      // Gem opgaver i state
+      const userAssignments = [];
+      querySnapshot.forEach((doc) => {
+        userAssignments.push({ id: doc.id, ...doc.data() });
       });
-
-      setTasks(assignmentsWithUsers); // Opdater state
-      setLoading(false); // Stop loading
+  
+      setTasks(userAssignments); // Opdater state med opgaver
+      setLoading(false);
     } catch (error) {
-      console.error("Error fetching data:", error);
-      setLoading(false); // Stop loading, selv ved fejl
+      console.error("Fejl ved hentning af opgaver:", error);
+      setLoading(false);
     }
   };
 
@@ -125,7 +130,11 @@ const Opgaver = () => {
       </Modal>
 
       <Text style={styles.title}>Opgaver</Text>
+      { tasks.length > 0 ? 
       <Text style={styles.subtitle}>Her er dagens arbejdsopgaver!</Text>
+      :
+      <Text style={styles.subtitle}>Du har fuldført alle dine opgaver</Text>
+      }
 
       <FlatList data={tasks} keyExtractor={(item) => item.id} renderItem={renderTask} style={styles.list} />
 
