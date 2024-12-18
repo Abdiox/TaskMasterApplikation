@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { StatusBar, StyleSheet, Text, View, Dimensions, FlatList, TouchableOpacity, Modal, TextInput, Platform } from "react-native";
+import React, { useState, useEffect } from "react";
+import { StatusBar, StyleSheet, Text, View, Dimensions, FlatList, TouchableOpacity, Modal, TextInput, Platform, Alert } from "react-native";
 import { Picker } from "@react-native-picker/picker";
-import { collection, getDocs, updateDoc, doc, addDoc, Timestamp } from "firebase/firestore";
+import { collection, getDocs, updateDoc, doc, addDoc, deleteDoc, Timestamp } from "firebase/firestore";
 import { db } from "../firebase";
 
-// Separate AddTaskDialog Component
 const AddTaskDialog = ({ showAddDialog, setShowAddDialog, newTask, setNewTask, handleAddTask }) => (
   <Modal visible={showAddDialog} animationType="slide" transparent={true} onRequestClose={() => setShowAddDialog(false)}>
     <View style={styles.modalOverlay}>
@@ -57,7 +56,76 @@ const AddTaskDialog = ({ showAddDialog, setShowAddDialog, newTask, setNewTask, h
   </Modal>
 );
 
-// Separate AssignTaskDialog Component
+const EditTaskDialog = ({ showEditDialog, setShowEditDialog, selectedTask, setSelectedTask, handleEditTask }) => {
+  const [editedTask, setEditedTask] = useState({
+    title: "",
+    description: "",
+    needsToBedoneBy: "",
+  });
+
+  useEffect(() => {
+    if (selectedTask) {
+      setEditedTask({
+        title: selectedTask.title,
+        description: selectedTask.description,
+        needsToBedoneBy: selectedTask.needsToBedoneBy?.toDate().toISOString().split("T")[0],
+      });
+    }
+  }, [selectedTask]);
+
+  return (
+    <Modal visible={showEditDialog} animationType="slide" transparent={true} onRequestClose={() => setShowEditDialog(false)}>
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+          <Text style={styles.modalTitle}>Rediger opgave</Text>
+
+          <TextInput
+            style={styles.input}
+            placeholder="Titel"
+            placeholderTextColor="#666"
+            value={editedTask.title}
+            onChangeText={(text) => setEditedTask((prev) => ({ ...prev, title: text }))}
+          />
+
+          <TextInput
+            style={[styles.input, styles.textArea]}
+            placeholder="Beskrivelse"
+            placeholderTextColor="#666"
+            multiline
+            numberOfLines={4}
+            value={editedTask.description}
+            onChangeText={(text) => setEditedTask((prev) => ({ ...prev, description: text }))}
+          />
+
+          <TextInput
+            style={styles.input}
+            placeholder="Deadline (YYYY-MM-DD)"
+            placeholderTextColor="#666"
+            value={editedTask.needsToBedoneBy}
+            onChangeText={(text) => setEditedTask((prev) => ({ ...prev, needsToBedoneBy: text }))}
+          />
+
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={[styles.button, styles.cancelButton]}
+              onPress={() => {
+                setShowEditDialog(false);
+                setEditedTask({ title: "", description: "", needsToBedoneBy: "" });
+              }}
+            >
+              <Text style={styles.buttonText}>Annuller</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={[styles.button, styles.submitButton]} onPress={() => handleEditTask(editedTask)}>
+              <Text style={styles.buttonText}>Gem</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
 const AssignTaskDialog = ({
   showAssignDialog,
   setShowAssignDialog,
@@ -116,6 +184,7 @@ const SætOpgaver = () => {
   const [loading, setLoading] = useState(true);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showAssignDialog, setShowAssignDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const [tempSelectedUser, setTempSelectedUser] = useState("");
   const [newTask, setNewTask] = useState({
@@ -193,6 +262,60 @@ const SætOpgaver = () => {
     }
   };
 
+  const handleEditTask = async (editedTask) => {
+    if (!editedTask.title || !editedTask.description || !editedTask.needsToBedoneBy) {
+      alert("Udfyld venligst alle felter!");
+      return;
+    }
+
+    try {
+      const dateObject = new Date(editedTask.needsToBedoneBy);
+
+      if (isNaN(dateObject.getTime())) {
+        alert("Ugyldig dato format. Brug venligst YYYY-MM-DD");
+        return;
+      }
+
+      const taskRef = doc(db, "assignments", selectedTask.id);
+      await updateDoc(taskRef, {
+        title: editedTask.title,
+        description: editedTask.description,
+        needsToBedoneBy: Timestamp.fromDate(dateObject),
+      });
+
+      alert("Opgave opdateret!");
+      setShowEditDialog(false);
+      await fetchData();
+    } catch (error) {
+      console.error("Error updating task:", error);
+      alert(`Der skete en fejl ved opdatering af opgaven: ${error.message}`);
+    }
+  };
+
+  const handleDeleteTask = async (taskId) => {
+    try {
+      Alert.alert("Bekræft sletning", "Er du sikker på, at du vil slette denne opgave?", [
+        {
+          text: "Annuller",
+          style: "cancel",
+        },
+        {
+          text: "Slet",
+          style: "destructive",
+          onPress: async () => {
+            const taskRef = doc(db, "assignments", taskId);
+            await deleteDoc(taskRef);
+            alert("Opgave slettet!");
+            await fetchData();
+          },
+        },
+      ]);
+    } catch (error) {
+      console.error("Error deleting task:", error);
+      alert(`Der skete en fejl ved sletning af opgaven: ${error.message}`);
+    }
+  };
+
   const assignUserToTask = async () => {
     if (!selectedTask || !tempSelectedUser) {
       alert("Vælg venligst en medarbejder!");
@@ -223,6 +346,29 @@ const SætOpgaver = () => {
       <Text style={styles.taskDetails}>Beskrivelse: {item.description}</Text>
       <Text style={styles.taskDetails}>Deadline: {item.needsToBedoneBy?.toDate().toLocaleDateString()}</Text>
       <Text style={styles.taskDetails}>Tildelt til: {users.find((user) => user.id === item.userId)?.name || "Ikke tildelt"}</Text>
+
+      <View style={styles.taskActions}>
+        <TouchableOpacity
+          style={[styles.actionButton, styles.editButton]}
+          onPress={(e) => {
+            e.stopPropagation();
+            setSelectedTask(item);
+            setShowEditDialog(true);
+          }}
+        >
+          <Text style={styles.actionButtonText}>Rediger</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.actionButton, styles.deleteButton]}
+          onPress={(e) => {
+            e.stopPropagation();
+            handleDeleteTask(item.id);
+          }}
+        >
+          <Text style={styles.actionButtonText}>Slet</Text>
+        </TouchableOpacity>
+      </View>
     </TouchableOpacity>
   );
 
@@ -251,6 +397,14 @@ const SætOpgaver = () => {
         newTask={newTask}
         setNewTask={setNewTask}
         handleAddTask={handleAddTask}
+      />
+
+      <EditTaskDialog
+        showEditDialog={showEditDialog}
+        setShowEditDialog={setShowEditDialog}
+        selectedTask={selectedTask}
+        setSelectedTask={setSelectedTask}
+        handleEditTask={handleEditTask}
       />
 
       <AssignTaskDialog
@@ -413,6 +567,31 @@ const styles = StyleSheet.create({
     color: "#fff",
     textAlign: "center",
     fontSize: 18,
+    fontWeight: "600",
+  },
+  taskActions: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    marginTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: "#eee",
+    paddingTop: 12,
+  },
+  actionButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    marginLeft: 8,
+  },
+  editButton: {
+    backgroundColor: "#FFA500",
+  },
+  deleteButton: {
+    backgroundColor: "#f44336",
+  },
+  actionButtonText: {
+    color: "#fff",
+    fontSize: 14,
     fontWeight: "600",
   },
 });
