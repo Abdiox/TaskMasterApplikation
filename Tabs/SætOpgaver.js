@@ -1,8 +1,113 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { StatusBar, StyleSheet, Text, View, Dimensions, FlatList, TouchableOpacity, Modal, TextInput, Platform } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { collection, getDocs, updateDoc, doc, addDoc, Timestamp } from "firebase/firestore";
 import { db } from "../firebase";
+
+// Separate AddTaskDialog Component
+const AddTaskDialog = ({ showAddDialog, setShowAddDialog, newTask, setNewTask, handleAddTask }) => (
+  <Modal visible={showAddDialog} animationType="slide" transparent={true} onRequestClose={() => setShowAddDialog(false)}>
+    <View style={styles.modalOverlay}>
+      <View style={styles.modalContent}>
+        <Text style={styles.modalTitle}>Tilføj ny opgave</Text>
+
+        <TextInput
+          style={styles.input}
+          placeholder="Titel"
+          placeholderTextColor="#666"
+          value={newTask.title}
+          onChangeText={(text) => setNewTask((prev) => ({ ...prev, title: text }))}
+        />
+
+        <TextInput
+          style={[styles.input, styles.textArea]}
+          placeholder="Beskrivelse"
+          placeholderTextColor="#666"
+          multiline
+          numberOfLines={4}
+          value={newTask.description}
+          onChangeText={(text) => setNewTask((prev) => ({ ...prev, description: text }))}
+        />
+
+        <TextInput
+          style={styles.input}
+          placeholder="Deadline (YYYY-MM-DD)"
+          placeholderTextColor="#666"
+          value={newTask.needsToBedoneBy}
+          onChangeText={(text) => setNewTask((prev) => ({ ...prev, needsToBedoneBy: text }))}
+        />
+
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={[styles.button, styles.cancelButton]}
+            onPress={() => {
+              setShowAddDialog(false);
+              setNewTask({ title: "", description: "", needsToBedoneBy: "" });
+            }}
+          >
+            <Text style={styles.buttonText}>Annuller</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={[styles.button, styles.submitButton]} onPress={handleAddTask}>
+            <Text style={styles.buttonText}>Tilføj</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
+  </Modal>
+);
+
+// Separate AssignTaskDialog Component
+const AssignTaskDialog = ({
+  showAssignDialog,
+  setShowAssignDialog,
+  selectedTask,
+  tempSelectedUser,
+  setTempSelectedUser,
+  users,
+  assignUserToTask,
+}) => (
+  <Modal visible={showAssignDialog} animationType="slide" transparent={true} onRequestClose={() => setShowAssignDialog(false)}>
+    <View style={styles.modalOverlay}>
+      <View style={styles.modalContent}>
+        <Text style={styles.modalTitle}>Tildel Opgave</Text>
+
+        {selectedTask && (
+          <>
+            <Text style={styles.taskTitle}>{selectedTask.title}</Text>
+            <Text style={styles.taskDetails}>Beskrivelse: {selectedTask.description}</Text>
+            <Text style={styles.taskDetails}>Deadline: {selectedTask.needsToBedoneBy?.toDate().toLocaleDateString()}</Text>
+
+            <View style={styles.pickerContainer}>
+              <Picker selectedValue={tempSelectedUser} onValueChange={(value) => setTempSelectedUser(value)} style={styles.picker}>
+                <Picker.Item label="Vælg en medarbejder" value="" color="#000" />
+                {users.map((user) => (
+                  <Picker.Item key={user.id} label={user.name} value={user.id} color="#000" />
+                ))}
+              </Picker>
+            </View>
+
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={[styles.button, styles.cancelButton]}
+                onPress={() => {
+                  setShowAssignDialog(false);
+                  setTempSelectedUser("");
+                }}
+              >
+                <Text style={styles.buttonText}>Annuller</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={[styles.button, styles.submitButton]} onPress={assignUserToTask}>
+                <Text style={styles.buttonText}>Tildel</Text>
+              </TouchableOpacity>
+            </View>
+          </>
+        )}
+      </View>
+    </View>
+  </Modal>
+);
 
 const SætOpgaver = () => {
   const [tasks, setTasks] = useState([]);
@@ -28,10 +133,6 @@ const SætOpgaver = () => {
       setTempSelectedUser(selectedTask.userId || "");
     }
   }, [selectedTask]);
-
-  useEffect(() => {
-    console.log("showAddDialog changed:", showAddDialog);
-  }, [showAddDialog]);
 
   const fetchData = async () => {
     try {
@@ -62,25 +163,33 @@ const SætOpgaver = () => {
     }
 
     try {
-      const taskToAdd = {
-        ...newTask,
-        dateOfCreation: Timestamp.now(),
-        needsToBedoneBy: Timestamp.fromDate(new Date(newTask.needsToBedoneBy)),
-        isDone: false,
+      const dateObject = new Date(newTask.needsToBedoneBy);
+
+      if (isNaN(dateObject.getTime())) {
+        alert("Ugyldig dato format. Brug venligst YYYY-MM-DD");
+        return;
+      }
+
+      const taskData = {
+        title: newTask.title,
+        description: newTask.description,
+        needsToBedoneBy: Timestamp.fromDate(dateObject),
       };
 
-      await addDoc(collection(db, "assignments"), taskToAdd);
+      await addDoc(collection(db, "assignments"), taskData);
+
       setNewTask({
         title: "",
         description: "",
         needsToBedoneBy: "",
       });
-      setShowAddDialog(false);
-      fetchData();
+
       alert("Opgave tilføjet!");
+      setShowAddDialog(false);
+      await fetchData();
     } catch (error) {
       console.error("Error adding task:", error);
-      alert("Der skete en fejl ved tilføjelse af opgaven");
+      alert(`Der skete en fejl ved tilføjelse af opgaven: ${error.message}`);
     }
   };
 
@@ -96,106 +205,11 @@ const SætOpgaver = () => {
       setSelectedUser((prev) => ({ ...prev, [selectedTask.id]: tempSelectedUser }));
       alert("Bruger tildelt opgave!");
       setShowAssignDialog(false);
-      fetchData();
+      await fetchData();
     } catch (error) {
       console.error("Error assigning user to task:", error);
     }
   };
-
-  const AddTaskDialog = () => (
-    <Modal
-      visible={showAddDialog}
-      animationType="slide"
-      transparent={true}
-      onRequestClose={() => setShowAddDialog(false)} // Tjek denne funktion
-    >
-      {" "}
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>Tilføj ny opgave</Text>
-
-          <TextInput
-            style={styles.input}
-            placeholder="Titel"
-            placeholderTextColor="#666"
-            value={newTask.title}
-            onChangeText={(text) => setNewTask({ ...newTask, title: text })}
-          />
-
-          <TextInput
-            style={[styles.input, styles.textArea]}
-            placeholder="Beskrivelse"
-            placeholderTextColor="#666"
-            multiline
-            numberOfLines={4}
-            value={newTask.description}
-            onChangeText={(text) => setNewTask({ ...newTask, description: text })}
-          />
-
-          <TextInput
-            style={styles.input}
-            placeholder="Deadline (YYYY-MM-DD)"
-            placeholderTextColor="#666"
-            value={newTask.needsToBedoneBy}
-            onChangeText={(text) => setNewTask({ ...newTask, needsToBedoneBy: text })}
-          />
-
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={() => setShowAddDialog(false)}>
-              <Text style={styles.buttonText}>Annuller</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={[styles.button, styles.submitButton]} onPress={handleAddTask}>
-              <Text style={styles.buttonText}>Tilføj</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-    </Modal>
-  );
-
-  const AssignTaskDialog = () => (
-    <Modal visible={showAssignDialog} animationType="slide" transparent={true} onRequestClose={() => setShowAssignDialog(false)}>
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>Tildel Opgave</Text>
-
-          {selectedTask && (
-            <>
-              <Text style={styles.taskTitle}>{selectedTask.title}</Text>
-              <Text style={styles.taskDetails}>Beskrivelse: {selectedTask.description}</Text>
-              <Text style={styles.taskDetails}>Deadline: {selectedTask.needsToBedoneBy?.toDate().toLocaleDateString()}</Text>
-
-              <View style={styles.pickerContainer}>
-                <Picker selectedValue={tempSelectedUser} onValueChange={(value) => setTempSelectedUser(value)} style={styles.picker}>
-                  <Picker.Item label="Vælg en medarbejder" value="" color="#000" />
-                  {users.map((user) => (
-                    <Picker.Item key={user.id} label={user.name} value={user.id} color="#000" />
-                  ))}
-                </Picker>
-              </View>
-
-              <View style={styles.buttonContainer}>
-                <TouchableOpacity
-                  style={[styles.button, styles.cancelButton]}
-                  onPress={() => {
-                    setShowAssignDialog(false);
-                    setTempSelectedUser("");
-                  }}
-                >
-                  <Text style={styles.buttonText}>Annuller</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={[styles.button, styles.submitButton]} onPress={assignUserToTask}>
-                  <Text style={styles.buttonText}>Tildel</Text>
-                </TouchableOpacity>
-              </View>
-            </>
-          )}
-        </View>
-      </View>
-    </Modal>
-  );
 
   const renderTask = ({ item }) => (
     <TouchableOpacity
@@ -231,8 +245,23 @@ const SætOpgaver = () => {
 
       <FlatList data={tasks} keyExtractor={(item) => item.id} renderItem={renderTask} style={styles.list} />
 
-      <AddTaskDialog />
-      <AssignTaskDialog />
+      <AddTaskDialog
+        showAddDialog={showAddDialog}
+        setShowAddDialog={setShowAddDialog}
+        newTask={newTask}
+        setNewTask={setNewTask}
+        handleAddTask={handleAddTask}
+      />
+
+      <AssignTaskDialog
+        showAssignDialog={showAssignDialog}
+        setShowAssignDialog={setShowAssignDialog}
+        selectedTask={selectedTask}
+        tempSelectedUser={tempSelectedUser}
+        setTempSelectedUser={setTempSelectedUser}
+        users={users}
+        assignUserToTask={assignUserToTask}
+      />
     </View>
   );
 };
