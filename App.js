@@ -168,10 +168,10 @@ function BottomTabs({ route }) {
       <Tab.Screen name="Opgaver" component={Opgaver} initialParams={{ userData }} />
 
       {/* Vis kun fanen "SætOpgaver" hvis brugerens rolle er "Byggeleder" */}
-      {userData?.role === "Byggeleder" && <Tab.Screen name="SætOpgaver" component={SætOpgaver} />}
+      {(userData?.role === "Byggeleder" || userData?.role === "CEO") && <Tab.Screen name="SætOpgaver" component={SætOpgaver} />}
 
       {/* Vis kun fanen Adminstration hvis brugerens rolle er "Byggeleder" */}
-      {userData?.role === "Byggeleder" && <Tab.Screen name="Adminstration" component={Adminstration} />}
+      {(userData?.role === "Byggeleder" || userData?.role === "CEO") && <Tab.Screen name="Adminstration" component={Adminstration} />}
 
       <Tab.Screen name="Profil" component={Profil} initialParams={{ userData }} />
     </Tab.Navigator>
