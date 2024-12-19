@@ -45,7 +45,7 @@ const Opgaver = ({ navigation, route }) => {
   const fetchAssignmentsWithUsers = async () => {
     try {
       // Hvis brugeren er en byggeleder, hent alle opgaver
-      if (userData.role === "Byggeleder") {
+      if (userData.role === "Byggeleder" || userData.role === "CEO") {
         const assignmentsRef = collection(db, "assignments");
         const querySnapshot = await getDocs(assignmentsRef);
 
