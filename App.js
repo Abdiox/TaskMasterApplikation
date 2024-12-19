@@ -27,6 +27,9 @@ async function handleSignIn(enteredEmail, enteredPassword, navigation, setAccoun
   try {
     // Log ind med email og password
     const userCredentials = await signInWithEmailAndPassword(auth, enteredEmail, enteredPassword);
+    if (!userCredentials) {
+      throw new aler("Login attempt failed. Incorrect email or password.");
+    }
     const user = userCredentials.user; // Bruger objekt fra Auth
     const uid = user.uid; // Hent UID for den indloggede bruger
 
