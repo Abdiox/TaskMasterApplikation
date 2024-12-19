@@ -9,9 +9,15 @@ import {
   Modal,
   TouchableOpacity,
   ActivityIndicator,
+  Button,
+  Image,
+  RefreshControl
 } from "react-native";
+import { CheckBox } from "react-native-elements";
 import LottieView from "lottie-react-native";
-import { collection, getDocs, query, where, getDoc, doc } from "firebase/firestore";
+import { collection, getDocs, query, where, getDoc, doc, updateDoc } from "firebase/firestore";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import * as ImagePicker from "expo-image-picker";
 import { db } from "../firebase";
 import { format } from "date-fns";
 import { da } from "date-fns/locale";
@@ -24,6 +30,9 @@ const Opgaver = ({ navigation, route }) => {
   const [loading, setLoading] = useState(true);
   const [showTaskDialog, setShowTaskDialog] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
+  const [isTaskDone, setIsTaskDone] = useState(false);
+  const [taskImage, setTaskImage] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     if (userData) {
@@ -31,7 +40,7 @@ const Opgaver = ({ navigation, route }) => {
     } else {
       console.error("userData er ikke tilgængeligt i Opgaver.js");
     }
-  }, [userData]); // Sørg for at køre funktionen, når userData ændres
+  }, [userData]); 
 
   const fetchAssignmentsWithUsers = async () => {
     try {
@@ -80,7 +89,11 @@ const Opgaver = ({ navigation, route }) => {
         }
         // Firestore-query: Hent kun assignments for den loggede bruger
         const assignmentsRef = collection(db, "assignments");
-        const q = query(assignmentsRef, where("userId", "==", userId));
+        const q = query(
+          assignmentsRef,
+          where("userId", "==", userId),
+          where("isDone", "==", false) // Hent kun opgaver, der ikke er færdige
+        );
 
         const querySnapshot = await getDocs(q);
 
@@ -101,6 +114,12 @@ const Opgaver = ({ navigation, route }) => {
     }
   };
 
+  const onRefresh = async () => {
+    setRefreshing(true); // Vis refresh loader
+    await fetchAssignmentsWithUsers(); // Hent data igen
+    setRefreshing(false); // Skjul refresh loader
+  };
+
   const handleAnimationFinish = () => {
     setTaskAnimation(false);
   };
@@ -111,11 +130,77 @@ const Opgaver = ({ navigation, route }) => {
     return format(date, "dd/MM/yyyy", { locale: da });
   };
 
+  const handlePickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setTaskImage(result.assets[0].uri);
+    }
+  };
+
+  const uploadImageToFirebase = async (imageUri) => {
+    try {
+      const storage = getStorage();
+      const fileName = imageUri.split("/").pop(); // Brug det korrekte imageUri
+      const imageRef = ref(storage, `task-images/${fileName}`);
+  
+      // Hent billedet som blob
+      const response = await fetch(imageUri);
+      const blob = await response.blob();
+  
+      // Upload billedet til Firebase Storage
+      await uploadBytes(imageRef, blob);
+  
+      // Få download-URL til billedet
+      const downloadURL = await getDownloadURL(imageRef);
+      return downloadURL;
+    } catch (error) {
+      console.error("Fejl ved upload af billede:", error);
+      return null;
+    }
+  };
+  
+
+  const handleUpdateTask = async () => {
+    if (!selectedTask) return;
+  
+    try {
+      let imageUrl = null;
+  
+      // Hvis der er valgt et billede, upload det til Firebase Storage
+      if (taskImage) {
+        imageUrl = await uploadImageToFirebase(taskImage); // Kald med taskImage
+      }
+  
+      // Opdater opgaven i Firestore
+      const taskRef = doc(db, "assignments", selectedTask.id);
+      await updateDoc(taskRef, {
+        isDone: isTaskDone,
+        image: imageUrl || selectedTask.image || null, // Gem nyt billede eller behold det eksisterende
+        dateOfFinished: isTaskDone ? new Date() : null, // Gem dato for færdiggørelse
+      });
+  
+      alert("Opgaven er opdateret!");
+      setShowTaskDialog(false);
+      fetchAssignmentsWithUsers(); // Opdater listen
+    } catch (error) {
+      console.error("Fejl ved opdatering af opgave:", error);
+      alert("Noget gik galt under opdateringen.");
+    }
+  };
+  
+
   const renderTask = ({ item }) => (
     <TouchableOpacity
       style={styles.taskCard}
       onPress={() => {
         setSelectedTask(item);
+        setIsTaskDone(item.isDone || false);
+        setTaskImage(item.image || null);
         setShowTaskDialog(true);
       }}
     >
@@ -141,7 +226,7 @@ const Opgaver = ({ navigation, route }) => {
   return (
     <View style={styles.container}>
       <StatusBar style="auto" />
-
+  
       {taskAnimation && (
         <LottieView
           source={require("../assets/TaskAnimation.json")}
@@ -151,7 +236,7 @@ const Opgaver = ({ navigation, route }) => {
           style={styles.animationSize}
         />
       )}
-
+  
       <Modal
         visible={showTaskDialog}
         animationType="slide"
@@ -174,37 +259,56 @@ const Opgaver = ({ navigation, route }) => {
                   Skal være færdig: {formatDate(selectedTask.needsToBedoneBy)}
                 </Text>
                 <Text style={styles.modalDetails}>
-                  Status: {selectedTask.isDone ? "Færdig" : "I gang"}
+                  Status: {isTaskDone ? "Færdig" : "I gang"}
                 </Text>
-                {selectedTask.location && (
-                  <Text style={styles.modalDetails}>
-                    Lokation: {selectedTask.location.latitude},{" "}
-                    {selectedTask.location.longitude}
-                  </Text>
-                )}
+                <View style={styles.imagePickerContainer}>
+                  {taskImage && (
+                    <Image source={{ uri: taskImage }} style={styles.image} />
+                  )}
+                  <Button title="Tilføj billede" onPress={handlePickImage} />
+                </View>
+                <View style={styles.checkboxContainer}>
+                  <CheckBox
+                    title="Opgaven er færdig"
+                    checked={isTaskDone}
+                    onPress={() => setIsTaskDone(!isTaskDone)} // Skift status
+                    containerStyle={styles.checkboxContainerStyle} // Optional styling
+                    textStyle={styles.checkboxTextStyle} // Optional styling
+                  />
+                </View>
+                <TouchableOpacity onPress={handleUpdateTask}>
+                  <Text style={styles.updateButton}>Opdater Opg.</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => setShowTaskDialog(false)}>
+                  <Text style={styles.closeButton}>Luk</Text>
+                </TouchableOpacity>
               </>
             )}
-            <TouchableOpacity onPress={() => setShowTaskDialog(false)}>
-              <Text style={styles.closeButton}>Luk</Text>
-            </TouchableOpacity>
           </View>
         </View>
       </Modal>
-
+  
       <Text style={styles.title}>Opgaver</Text>
       {tasks.length > 0 ? (
         <Text style={styles.subtitle}>Her er dagens arbejdsopgaver!</Text>
       ) : (
         <Text style={styles.subtitle}>Du har fuldført alle dine opgaver</Text>
       )}
-
-      <FlatList
+  
+  <FlatList
         data={tasks}
         keyExtractor={(item) => item.id}
         renderItem={renderTask}
         style={styles.list}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={["#007BFF"]}
+          />
+        }
       />
-
+  
       <Text style={styles.footerText}>TaskMaster © 2024</Text>
     </View>
   );
@@ -298,6 +402,30 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#aaa",
   },
+  imagePickerContainer: {
+    marginVertical: 10,
+  },
+  image: {
+    width: 100,
+    height: 100,
+    marginBottom: 10,
+  },
+  checkboxContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 10,
+  },
+  checkboxLabel: {
+    marginLeft: 8,
+    fontSize: 16,
+    color: "#333",
+  },
+  updateButton: {
+    fontSize: 16,
+    color: "green",
+    textAlign: "center",
+    marginVertical: 10,
+  }
 });
 
 export default Opgaver;
