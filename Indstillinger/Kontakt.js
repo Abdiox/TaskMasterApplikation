@@ -8,7 +8,7 @@ const Kontakt = () => {
   };
 
   const openPhone = () => {
-    Linking.openURL("tel:+1234567890");
+    Linking.openURL("tel:+45 22 22 22 22");
   };
 
   return (

@@ -16,12 +16,12 @@ const Indstillinger = ({ navigation }) => {
 
       <View style={styles.header}>
         <Text style={styles.title}>Privatindstillinger for konto</Text>
-        <Button mode="contained" style={styles.button} labelStyle={styles.buttonText} onPress={() => navigation.navigate("RedigerProfil")}>
+        {/* <Button mode="contained" style={styles.button} labelStyle={styles.buttonText} onPress={() => navigation.navigate("RedigerProfil")}>
           Rediger Profil
         </Button>
         <Button mode="contained" style={styles.button} labelStyle={styles.buttonText}>
           Ændre adgangskode
-        </Button>
+        </Button> */}
         <Button mode="contained" style={styles.button} labelStyle={styles.buttonText} onPress={() => navigation.navigate("OmTaskMaster")}>
           Om TaskMaster
         </Button>

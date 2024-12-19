@@ -23,20 +23,10 @@ import Kontakt from "./Indstillinger/Kontakt";
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-async function handleSignIn(
-  enteredEmail,
-  enteredPassword,
-  navigation,
-  setAccountAnimation,
-  setLoginSuccessAnimation
-) {
+async function handleSignIn(enteredEmail, enteredPassword, navigation, setAccountAnimation, setLoginSuccessAnimation) {
   try {
     // Log ind med email og password
-    const userCredentials = await signInWithEmailAndPassword(
-      auth,
-      enteredEmail,
-      enteredPassword
-    );
+    const userCredentials = await signInWithEmailAndPassword(auth, enteredEmail, enteredPassword);
     const user = userCredentials.user; // Bruger objekt fra Auth
     const uid = user.uid; // Hent UID for den indloggede bruger
 
@@ -55,11 +45,10 @@ async function handleSignIn(
       // Eksempel: Gem brugerdata i en state, context eller navigation-parametre
       setAccountAnimation(false);
       setLoginSuccessAnimation(true);
-
       // Naviger videre og inkluder både userData og uid
       setTimeout(() => {
         navigation.navigate("Main", { userData: { ...userData, uid } });
-      }, 2000);
+      }, 150000); // Giv mere tid til animationen
     } else {
       console.error("Ingen brugerdata fundet i Firestore.");
       alert("Ingen brugerdata fundet. Kontakt administrator.");
@@ -83,11 +72,11 @@ function LoginSite({ navigation }) {
           const uid = user.uid;
           const userDocRef = doc(db, "users", uid);
           const userDocSnap = await getDoc(userDocRef);
-  
+
           if (userDocSnap.exists()) {
             const userData = userDocSnap.data();
             console.log("Auto-login brugerdata:", userData);
-  
+
             // Navigér til Main med brugerdata
             navigation.navigate("Main", { userData: { ...userData, uid } });
           } else {
@@ -99,10 +88,9 @@ function LoginSite({ navigation }) {
         }
       }
     });
-  
+
     return () => unsubscribe();
   }, [navigation]);
-  
 
   return (
     <View style={styles.container}>
@@ -133,7 +121,14 @@ function LoginSite({ navigation }) {
       >
         Sign In
       </Button>
-      {LoginSuccessAnimation && <LottieView source={require("./assets/LoginSuccesfullyAnimation.json")} autoPlay loop style={styles.animationSize} />}
+      {LoginSuccessAnimation && (
+        <LottieView
+          source={require("./assets/LoginSuccesfullyAnimation.json")}
+          autoPlay
+          loop={false} // Kun spil én gang
+          style={styles.animationSize}
+        />
+      )}
 
       <StatusBar style="auto" />
       <Text style={styles.footerText}>TaskMaster © 2024</Text>
@@ -171,22 +166,14 @@ function BottomTabs({ route }) {
     >
       <Tab.Screen name="Hjem" component={Hjem} />
       <Tab.Screen name="Opgaver" component={Opgaver} initialParams={{ userData }} />
-      
+
       {/* Vis kun fanen "SætOpgaver" hvis brugerens rolle er "Byggeleder" */}
-      {userData?.role === "Byggeleder" && (
-        <Tab.Screen name="SætOpgaver" component={SætOpgaver} />
-      )}
+      {userData?.role === "Byggeleder" && <Tab.Screen name="SætOpgaver" component={SætOpgaver} />}
 
       {/* Vis kun fanen Adminstration hvis brugerens rolle er "Byggeleder" */}
-      {userData?.role === "Byggeleder" && (
-        <Tab.Screen name="Adminstration" component={Adminstration} />
-      )}
+      {userData?.role === "Byggeleder" && <Tab.Screen name="Adminstration" component={Adminstration} />}
 
-      <Tab.Screen
-        name="Profil"
-        component={Profil}
-        initialParams={{ userData }}
-      />
+      <Tab.Screen name="Profil" component={Profil} initialParams={{ userData }} />
     </Tab.Navigator>
   );
 }
