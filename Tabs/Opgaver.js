@@ -55,9 +55,7 @@ const Opgaver = ({ navigation, route }) => {
               if (userDocSnap.exists()) {
                 const userData = userDocSnap.data();
                 console.log("User found:", userData);
-                return {
-                  ...assignment,
-                  user: { name: userData.name, email: userData.email },
+                return {...assignment, user: { name: userData.name, email: userData.email },
                 };
               } else {
                 console.warn(`No user found for userId: ${assignment.userId}`);
@@ -73,15 +71,13 @@ const Opgaver = ({ navigation, route }) => {
         setLoading(false);
       } else {   // Hvis brugeren er en medarbejder, hent kun egne opgaver
         setLoading(true);
-
         // Hent brugerens userId fra route.params.userData
         const userId = userData?.uid;
-
+        console.log(userData);
         if (!userId) {
           console.error("Ingen bruger-id fundet.");
           return;
         }
-
         // Firestore-query: Hent kun assignments for den loggede bruger
         const assignmentsRef = collection(db, "assignments");
         const q = query(assignmentsRef, where("userId", "==", userId));
@@ -91,14 +87,14 @@ const Opgaver = ({ navigation, route }) => {
         // Gem opgaver i state
         const userAssignments = [];
         querySnapshot.forEach((doc) => {
-          userAssignments.push({ id: doc.id, ...doc.data() });
+          userAssignments.push({ id: doc.id, ...doc.data(), user: userData });
         });
 
         setTasks(userAssignments); // Opdater state med opgaver
         setLoading(false);
       }
-
-      console.log("Opgaver:", tasks);
+      console.log("Opgaver hentet:", tasks);
+      
     } catch (error) {
       console.error("Fejl ved hentning af opgaver:", error);
       setLoading(false);
