@@ -200,8 +200,25 @@ const Medarbejder = ({ navigation }) => {
     <View style={styles.container}>
       <Text style={styles.header}>Medarbejdere</Text>
 
-      <TouchableOpacity style={styles.addButton} onPress={() => setShowAddUserModal(true)}>
-        <Text style={styles.addButtonText}>+ Tilføj ny medarbejder</Text>
+      <TouchableOpacity
+        style={[
+          styles.addButton,
+          {
+            position: "absolute",
+            bottom: 20,
+            right: 20,
+            width: 60,
+            height: 60,
+            borderRadius: 30,
+            backgroundColor: "#FFA500",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 999,
+          },
+        ]}
+        onPress={() => setShowAddUserModal(true)}
+      >
+        <Text style={styles.addButtonText}>+</Text>
       </TouchableOpacity>
 
       {/* Animations */}
@@ -321,47 +338,166 @@ const Medarbejder = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff", // Clean white background
+    backgroundColor: "#f5f5f5",
     padding: 20,
   },
   header: {
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: "bold",
-    marginBottom: 20,
-    color: "#333", // Dark text for header
+    color: "#333",
+    marginBottom: -160,
+    textAlign: "center",
   },
   userCard: {
     flexDirection: "row",
-    marginBottom: 20,
-    borderWidth: 1,
-    borderRadius: 15,
+    backgroundColor: "#FFF",
     padding: 15,
-    borderColor: "#ddd",
-    backgroundColor: "#f9f9f9", // Light background on cards
-    shadowColor: "#000", // Subtle shadow effect for depth
+    marginVertical: 10,
+    borderRadius: 10,
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    alignItems: "center",
   },
   userImage: {
     width: 60,
     height: 60,
     borderRadius: 30,
     marginRight: 15,
-    borderWidth: 2,
-    borderColor: "#FF5722", // Orange border around image
   },
   userInfo: {
-    justifyContent: "center",
+    flex: 1,
+  },
+  animationSize: {
+    width: 120,
+    height: 100,
+    top: 140,
+    right: -120,
+  },
+  DeleteAnimationSize: {
+    width: 80,
+    height: 80,
+    top: 10,
+    right: -290,
+  },
+  EditAnimationSize: {
+    width: 100,
+    height: 100,
+    top: 10,
+    right: -140,
   },
   userName: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#333", // Dark text for name
+    color: "#333",
+  },
+  userEmail: {
+    fontSize: 14,
+    color: "#555",
+    marginVertical: 2,
   },
   userRole: {
+    fontSize: 14,
+    color: "#777",
+  },
+  backButton: {
+    marginTop: 20,
+    backgroundColor: "#FFA500",
+    padding: 10,
+    borderRadius: 5,
+    alignItems: "center",
+  },
+  backButtonText: {
+    color: "#FFF",
     fontSize: 16,
-    color: "#FF5722", // Orange color for role
+    fontWeight: "bold",
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+    backgroundColor: "white",
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: "bold",
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  input: {
+    height: 40,
+    borderColor: "#333",
+    borderWidth: 1,
+    marginBottom: 10,
+    paddingLeft: 8,
+    borderRadius: 5,
+    width: "100%",
+  },
+  addButton: {
+    backgroundColor: "#FFA500",
+    padding: 10,
+    borderRadius: 5,
+    alignItems: "center",
+    width: "100%",
+  },
+  addButtonText: {
+    color: "#FFF",
+    fontSize: 16,
+  },
+  closeButton: {
+    marginTop: 10,
+    backgroundColor: "#ccc",
+    padding: 10,
+    borderRadius: 5,
+    alignItems: "center",
+    width: "100%",
+  },
+  closeButtonText: {
+    color: "#333",
+    fontSize: 16,
+  },
+  addUserButton: {
+    position: "absolute",
+    bottom: 20,
+    right: 20,
+    width: 60, // Størrelsen på knappen
+    height: 60, // Størrelsen på knappen
+    borderRadius: 30, // Gør den rund
+    backgroundColor: "#FFA500", // Baggrundsfarve
+    justifyContent: "center", // Centrerer teksten
+    alignItems: "center", // Centrerer teksten
+    zIndex: 999, // Sørger for, at den er øverst
+  },
+  addUserButtonText: {
+    color: "#FFF",
+    fontSize: 24,
+  },
+  editButton: {
+    backgroundColor: "#FFA500",
+    padding: 10,
+    borderRadius: 5,
+    alignItems: "center",
+    width: "100%",
+    marginTop: 20,
+  },
+  editButtonText: {
+    color: "#FFF",
+    fontSize: 16,
+  },
+  deleteButton: {
+    backgroundColor: "#FF6347",
+    padding: 10,
+    borderRadius: 5,
+    alignItems: "center",
+    width: "100%",
+    marginTop: 10,
+  },
+  deleteButtonText: {
+    color: "#FFF",
+    fontSize: 16,
   },
   loadingContainer: {
     flex: 1,
@@ -369,122 +505,48 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   loadingText: {
-    fontSize: 20,
-    color: "#FF5722", // Orange text during loading
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: "center",
-    padding: 20,
-    backgroundColor: "#fff", // White background in modals
-  },
-  modalTitle: {
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: "bold",
-    marginBottom: 15,
-    color: "#333", // Dark title color
+    color: "#333",
   },
-  input: {
-    borderWidth: 1,
-    borderColor: "#FF5722", // Orange border for input fields
-    borderRadius: 5,
-    padding: 12,
-    marginBottom: 15,
-    color: "#333", // Dark text in input fields
+
+  dropdownContainer: {
+    position: "relative",
+    width: "100%",
+    marginBottom: 10,
   },
   dropdownButton: {
+    backgroundColor: "#fff",
+    borderColor: "#ccc",
     borderWidth: 1,
-    borderColor: "#FF5722", // Orange border around dropdown
+    paddingVertical: 10,
+    paddingHorizontal: 15,
     borderRadius: 5,
-    padding: 12,
-    marginBottom: 15,
+    marginBottom: 10,
   },
   dropdownButtonText: {
     fontSize: 16,
-    color: "#FF5722", // Orange text inside dropdown
+    color: "#888",
   },
   dropdown: {
-    backgroundColor: "#fff", // White background in dropdown
-    borderWidth: 1,
-    borderColor: "#FF5722",
-    borderRadius: 5,
-    marginTop: 5,
+    position: "absolute",
     width: "100%",
+    backgroundColor: "#fff",
+    borderColor: "#ccc",
+    borderWidth: 1,
+    borderRadius: 5,
+    marginTop: 10,
+    zIndex: 9999,
   },
   dropdownItem: {
-    padding: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
     borderBottomWidth: 1,
-    borderBottomColor: "#ddd",
+    borderBottomColor: "#ccc",
   },
-  addButton: {
-    backgroundColor: "#FF5722", // Orange background for add button
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 20,
-  },
-  addButtonText: {
-    color: "#fff",
-    textAlign: "center",
-    fontSize: 18,
-  },
-  editButton: {
-    backgroundColor: "#FF9800", // Lighter orange for edit button
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 20,
-  },
-  editButtonText: {
-    color: "#fff",
-    textAlign: "center",
-    fontSize: 18,
-  },
-  deleteButton: {
-    backgroundColor: "#F44336", // Red background for delete button
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 10,
-  },
-  deleteButtonText: {
-    color: "#fff",
-    textAlign: "center",
-    fontSize: 18,
-  },
-  closeButton: {
-    backgroundColor: "#ddd", // Light grey background for close button
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 10,
-  },
-  closeButtonText: {
-    color: "#333", // Dark text on close button
-    textAlign: "center",
-    fontSize: 18,
-  },
-  modalText: {
-    fontSize: 18,
-    marginBottom: 12,
-    color: "#333", // Dark text inside modals
-  },
-  animationSize: {
-    width: 120,
-    height: 120,
-    position: "absolute",
-    top: 20,
-    right: 20,
-  },
-  DeleteAnimationSize: {
-    width: 120,
-    height: 120,
-    position: "absolute",
-    top: 60,
-    right: 20,
-  },
-  EditAnimationSize: {
-    width: 120,
-    height: 120,
-    position: "absolute",
-    top: 100,
-    right: 20,
+  dropdownItemText: {
+    fontSize: 16,
+    color: "#888",
   },
 });
 
