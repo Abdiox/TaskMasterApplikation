@@ -3,13 +3,13 @@ import { StatusBar, StyleSheet, Text, View, Dimensions, FlatList, TouchableOpaci
 import { Picker } from "@react-native-picker/picker";
 import { collection, getDocs, updateDoc, doc, addDoc, deleteDoc, Timestamp } from "firebase/firestore";
 import { db } from "../firebase";
+import MapView, { Marker } from "react-native-maps";
 
 const AddTaskDialog = ({ showAddDialog, setShowAddDialog, newTask, setNewTask, handleAddTask }) => (
   <Modal visible={showAddDialog} animationType="slide" transparent={true} onRequestClose={() => setShowAddDialog(false)}>
     <View style={styles.modalOverlay}>
       <View style={styles.modalContent}>
         <Text style={styles.modalTitle}>Tilføj ny opgave</Text>
-
         <TextInput
           style={styles.input}
           placeholder="Titel"
@@ -17,7 +17,6 @@ const AddTaskDialog = ({ showAddDialog, setShowAddDialog, newTask, setNewTask, h
           value={newTask.title}
           onChangeText={(text) => setNewTask((prev) => ({ ...prev, title: text }))}
         />
-
         <TextInput
           style={[styles.input, styles.textArea]}
           placeholder="Beskrivelse"
@@ -27,7 +26,6 @@ const AddTaskDialog = ({ showAddDialog, setShowAddDialog, newTask, setNewTask, h
           value={newTask.description}
           onChangeText={(text) => setNewTask((prev) => ({ ...prev, description: text }))}
         />
-
         <TextInput
           style={styles.input}
           placeholder="Deadline (YYYY-MM-DD)"
@@ -35,6 +33,51 @@ const AddTaskDialog = ({ showAddDialog, setShowAddDialog, newTask, setNewTask, h
           value={newTask.needsToBedoneBy}
           onChangeText={(text) => setNewTask((prev) => ({ ...prev, needsToBedoneBy: text }))}
         />
+        <TextInput
+          style={styles.input}
+          placeholder="Længdegrad"
+          placeholderTextColor="#666"
+          value={newTask.longtitude}
+          onChangeText={(text) => setNewTask((prev) => ({ ...prev, longtitude: text }))}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Breddegrad"
+          placeholderTextColor="#666"
+          value={newTask.latitude}
+          onChangeText={(text) => setNewTask((prev) => ({ ...prev, latitude: text }))}
+        />
+
+        <View style={styles.mapContainer}>
+          <MapView
+            style={styles.map}
+            initialRegion={{
+              latitude: 56.1629, // Danmarks cirka midtpunkt
+              longitude: 10.2039,
+              latitudeDelta: 7,
+              longitudeDelta: 7,
+            }}
+            onLongPress={(e) => {
+              const { latitude, longitude } = e.nativeEvent.coordinate;
+              setNewTask((prev) => ({
+                ...prev,
+                latitude: latitude.toString(),
+                longtitude: longitude.toString(),
+              }));
+              Alert.alert("Lokation valgt", "Markør er blevet placeret på det valgte sted");
+            }}
+          >
+            {newTask.latitude && newTask.longtitude && (
+              <Marker
+                coordinate={{
+                  latitude: parseFloat(newTask.latitude),
+                  longitude: parseFloat(newTask.longtitude),
+                }}
+                title="Opgavens lokation"
+              />
+            )}
+          </MapView>
+        </View>
 
         <View style={styles.buttonContainer}>
           <TouchableOpacity
@@ -61,6 +104,8 @@ const EditTaskDialog = ({ showEditDialog, setShowEditDialog, selectedTask, setSe
     title: "",
     description: "",
     needsToBedoneBy: "",
+    longtitude: "",
+    latitude: "",
   });
 
   useEffect(() => {
@@ -69,6 +114,8 @@ const EditTaskDialog = ({ showEditDialog, setShowEditDialog, selectedTask, setSe
         title: selectedTask.title,
         description: selectedTask.description,
         needsToBedoneBy: selectedTask.needsToBedoneBy?.toDate().toISOString().split("T")[0],
+        longtitude: selectedTask.longtitude,
+        latitude: selectedTask.latitude,
       });
     }
   }, [selectedTask]);
@@ -78,7 +125,6 @@ const EditTaskDialog = ({ showEditDialog, setShowEditDialog, selectedTask, setSe
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           <Text style={styles.modalTitle}>Rediger opgave</Text>
-
           <TextInput
             style={styles.input}
             placeholder="Titel"
@@ -86,7 +132,6 @@ const EditTaskDialog = ({ showEditDialog, setShowEditDialog, selectedTask, setSe
             value={editedTask.title}
             onChangeText={(text) => setEditedTask((prev) => ({ ...prev, title: text }))}
           />
-
           <TextInput
             style={[styles.input, styles.textArea]}
             placeholder="Beskrivelse"
@@ -96,7 +141,6 @@ const EditTaskDialog = ({ showEditDialog, setShowEditDialog, selectedTask, setSe
             value={editedTask.description}
             onChangeText={(text) => setEditedTask((prev) => ({ ...prev, description: text }))}
           />
-
           <TextInput
             style={styles.input}
             placeholder="Deadline (YYYY-MM-DD)"
@@ -104,6 +148,37 @@ const EditTaskDialog = ({ showEditDialog, setShowEditDialog, selectedTask, setSe
             value={editedTask.needsToBedoneBy}
             onChangeText={(text) => setEditedTask((prev) => ({ ...prev, needsToBedoneBy: text }))}
           />
+
+          <View style={styles.mapContainer}>
+            <MapView
+              style={styles.map}
+              initialRegion={{
+                latitude: editedTask.latitude ? parseFloat(editedTask.latitude) : 56.1629,
+                longitude: editedTask.longtitude ? parseFloat(editedTask.longtitude) : 10.2039,
+                latitudeDelta: 7,
+                longitudeDelta: 7,
+              }}
+              onLongPress={(e) => {
+                const { latitude, longitude } = e.nativeEvent.coordinate;
+                setEditedTask((prev) => ({
+                  ...prev,
+                  latitude: latitude.toString(),
+                  longtitude: longitude.toString(),
+                }));
+                Alert.alert("Lokation ændret", "Markør er blevet flyttet til det nye sted");
+              }}
+            >
+              {editedTask.latitude && editedTask.longtitude && (
+                <Marker
+                  coordinate={{
+                    latitude: parseFloat(editedTask.latitude),
+                    longitude: parseFloat(editedTask.longtitude),
+                  }}
+                  title="Opgavens lokation"
+                />
+              )}
+            </MapView>
+          </View>
 
           <View style={styles.buttonContainer}>
             <TouchableOpacity
@@ -191,6 +266,8 @@ const SætOpgaver = () => {
     title: "",
     description: "",
     needsToBedoneBy: "",
+    longtitude: "",
+    latitude: "",
   });
 
   useEffect(() => {
@@ -226,8 +303,8 @@ const SætOpgaver = () => {
   };
 
   const handleAddTask = async () => {
-    if (!newTask.title || !newTask.description || !newTask.needsToBedoneBy) {
-      alert("Udfyld venligst alle felter!");
+    if (!newTask.title || !newTask.description || !newTask.needsToBedoneBy || !newTask.latitude || !newTask.longtitude) {
+      alert("Udfyld venligst alle felter og vælg en lokation på kortet!");
       return;
     }
 
@@ -243,6 +320,9 @@ const SætOpgaver = () => {
         title: newTask.title,
         description: newTask.description,
         needsToBedoneBy: Timestamp.fromDate(dateObject),
+        latitude: newTask.latitude,
+        longtitude: newTask.longtitude,
+        isDone: false, // Tilføjet denne linje
       };
 
       await addDoc(collection(db, "assignments"), taskData);
@@ -251,6 +331,8 @@ const SætOpgaver = () => {
         title: "",
         description: "",
         needsToBedoneBy: "",
+        latitude: "",
+        longtitude: "",
       });
 
       alert("Opgave tilføjet!");
@@ -593,6 +675,18 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 14,
     fontWeight: "600",
+  },
+
+  // I StyleSheet.create:
+  mapContainer: {
+    height: 200,
+    marginBottom: 16,
+    borderRadius: 12,
+    overflow: "hidden",
+  },
+  map: {
+    width: "100%",
+    height: "100%",
   },
 });
 
