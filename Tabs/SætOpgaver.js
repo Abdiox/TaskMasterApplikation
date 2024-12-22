@@ -55,8 +55,8 @@ const AddTaskDialog = ({ showAddDialog, setShowAddDialog, newTask, setNewTask, h
             style={styles.input}
             placeholder="Længdegrad"
             placeholderTextColor="#666"
-            value={newTask.longtitude}
-            onChangeText={(text) => setNewTask((prev) => ({ ...prev, longtitude: text }))}
+            value={newTask.longitude}
+            onChangeText={(text) => setNewTask((prev) => ({ ...prev, longitude: text }))}
           />
           <TextInput
             style={styles.input}
@@ -80,16 +80,16 @@ const AddTaskDialog = ({ showAddDialog, setShowAddDialog, newTask, setNewTask, h
                 setNewTask((prev) => ({
                   ...prev,
                   latitude: latitude.toString(),
-                  longtitude: longitude.toString(),
+                  longitude: longitude.toString(),
                 }));
                 Alert.alert("Lokation valgt", "Markør er blevet placeret på det valgte sted");
               }}
             >
-              {newTask.latitude && newTask.longtitude && (
+              {newTask.latitude && newTask.longitude && (
                 <Marker
                   coordinate={{
                     latitude: parseFloat(newTask.latitude),
-                    longitude: parseFloat(newTask.longtitude),
+                    longitude: parseFloat(newTask.longitude),
                   }}
                   title="Opgavens lokation"
                 />
@@ -123,7 +123,7 @@ const EditTaskDialog = ({ showEditDialog, setShowEditDialog, selectedTask, setSe
     title: "",
     description: "",
     needsToBedoneBy: "",
-    longtitude: "",
+    longitude: "",
     latitude: "",
   });
 
@@ -133,7 +133,7 @@ const EditTaskDialog = ({ showEditDialog, setShowEditDialog, selectedTask, setSe
         title: selectedTask.title,
         description: selectedTask.description,
         needsToBedoneBy: selectedTask.needsToBedoneBy?.toDate().toISOString().split("T")[0],
-        longtitude: selectedTask.longtitude,
+        longitude: selectedTask.longitude,
         latitude: selectedTask.latitude,
       });
     }
@@ -173,7 +173,7 @@ const EditTaskDialog = ({ showEditDialog, setShowEditDialog, selectedTask, setSe
               style={styles.map}
               initialRegion={{
                 latitude: editedTask.latitude ? parseFloat(editedTask.latitude) : 56.1629,
-                longitude: editedTask.longtitude ? parseFloat(editedTask.longtitude) : 10.2039,
+                longitude: editedTask.longitude ? parseFloat(editedTask.longitude) : 10.2039,
                 latitudeDelta: 7,
                 longitudeDelta: 7,
               }}
@@ -182,16 +182,16 @@ const EditTaskDialog = ({ showEditDialog, setShowEditDialog, selectedTask, setSe
                 setEditedTask((prev) => ({
                   ...prev,
                   latitude: latitude.toString(),
-                  longtitude: longitude.toString(),
+                  longitude: longitude.toString(),
                 }));
                 Alert.alert("Lokation ændret", "Markør er blevet flyttet til det nye sted");
               }}
             >
-              {editedTask.latitude && editedTask.longtitude && (
+              {editedTask.latitude && editedTask.longitude && (
                 <Marker
                   coordinate={{
                     latitude: parseFloat(editedTask.latitude),
-                    longitude: parseFloat(editedTask.longtitude),
+                    longitude: parseFloat(editedTask.longitude),
                   }}
                   title="Opgavens lokation"
                 />
@@ -285,7 +285,7 @@ const SætOpgaver = () => {
     title: "",
     description: "",
     needsToBedoneBy: "",
-    longtitude: "",
+    longitude: "",
     latitude: "",
   });
 
@@ -322,7 +322,7 @@ const SætOpgaver = () => {
   };
 
   const handleAddTask = async () => {
-    if (!newTask.title || !newTask.description || !newTask.needsToBedoneBy || !newTask.latitude || !newTask.longtitude) {
+    if (!newTask.title || !newTask.description || !newTask.needsToBedoneBy || !newTask.latitude || !newTask.longitude) {
       alert("Udfyld venligst alle felter og vælg en lokation på kortet!");
       return;
     }
@@ -340,7 +340,7 @@ const SætOpgaver = () => {
         description: newTask.description,
         needsToBedoneBy: Timestamp.fromDate(dateObject),
         latitude: newTask.latitude,
-        longtitude: newTask.longtitude,
+        longitude: newTask.longitude,
         isDone: false, // Tilføjet denne linje
       };
 
@@ -351,7 +351,7 @@ const SætOpgaver = () => {
         description: "",
         needsToBedoneBy: "",
         latitude: "",
-        longtitude: "",
+        longitude: "",
       });
 
       alert("Opgave tilføjet!");

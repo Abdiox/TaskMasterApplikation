@@ -131,18 +131,17 @@ const Opgaver = ({ navigation, route }) => {
 
       if (assignmentDocSnap.exists()) {
         const assignmentData = assignmentDocSnap.data();
-        console.log("Raw assignment data:", assignmentData); // Debug log
+        console.log("Raw assignment data:", assignmentData);
 
-        if (assignmentData.latitude && assignmentData.longtitude) {
-          // Rettet fra longtitude
+        if (assignmentData.latitude && assignmentData.longitude) {
           console.log("Location data found:", {
             latitude: assignmentData.latitude,
-            longtitude: assignmentData.longtitude, // Rettet fra longtitude
+            longitude: assignmentData.longitude,
           });
 
           setLocation({
             latitude: parseFloat(assignmentData.latitude),
-            longitude: parseFloat(assignmentData.longtitude), // Rettet fra longtitude
+            longitude: parseFloat(assignmentData.longitude),
           });
           setShowMapModal(true);
         } else {
