@@ -37,6 +37,7 @@ const Opgaver = ({ navigation, route }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [showMapModal, setShowMapModal] = useState(false);
   const [location, setLocation] = useState(null);
+  const [filterStatus, setFilterStatus] = useState("all");
 
   useEffect(() => {
     if (userData) {
@@ -116,6 +117,17 @@ const Opgaver = ({ navigation, route }) => {
 
   const handleAnimationFinish = () => {
     setTaskAnimation(false);
+  };
+
+  const getFilteredTasks = () => {
+    switch (filterStatus) {
+      case "active":
+        return tasks.filter((task) => !task.isDone);
+      case "completed":
+        return tasks.filter((task) => task.isDone);
+      default:
+        return tasks;
+    }
   };
 
   const formatDate = (timestamp) => {
@@ -274,7 +286,7 @@ const Opgaver = ({ navigation, route }) => {
 
                 <View style={styles.imagePickerContainer}>
                   {taskImage && <Image source={{ uri: taskImage }} style={styles.image} />}
-                  <Button title="Tilføj billede" onPress={handlePickImage} />
+                  <Button style={styles.addPicture} title="Tilføj billede" onPress={handlePickImage} />
                 </View>
                 <View style={styles.checkboxContainer}>
                   <CheckBox
@@ -332,8 +344,23 @@ const Opgaver = ({ navigation, route }) => {
         <Text style={styles.subtitle}>Du har fuldført alle dine opgaver</Text>
       )}
 
+      <View style={styles.filterContainer}>
+        <TouchableOpacity style={[styles.filterButton, filterStatus === "all" && styles.activeFilter]} onPress={() => setFilterStatus("all")}>
+          <Text style={[styles.filterText, filterStatus === "all" && styles.activeFilterText]}>Alle</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.filterButton, filterStatus === "active" && styles.activeFilter]} onPress={() => setFilterStatus("active")}>
+          <Text style={[styles.filterText, filterStatus === "active" && styles.activeFilterText]}>Aktive</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.filterButton, filterStatus === "completed" && styles.activeFilter]}
+          onPress={() => setFilterStatus("completed")}
+        >
+          <Text style={[styles.filterText, filterStatus === "completed" && styles.activeFilterText]}>Færdige</Text>
+        </TouchableOpacity>
+      </View>
+
       <FlatList
-        data={tasks}
+        data={getFilteredTasks()}
         keyExtractor={(item) => item.id}
         renderItem={renderTask}
         style={styles.list}
@@ -423,19 +450,33 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   closeButton: {
-    fontSize: 16,
-    color: "#007BFF",
-    marginTop: 16,
+    backgroundColor: "#FF8C00",
+    color: "#fff",
+    padding: 10,
+    borderRadius: 8,
     textAlign: "center",
+    fontSize: 16,
+    fontWeight: "bold",
+    marginVertical: 10,
   },
   footerText: {
     marginTop: 20,
     fontSize: 12,
     color: "#aaa",
   },
-  imagePickerContainer: {
+
+  addPicture: {
+    fontSize: 16,
+    color: "#FF8C00",
+    textAlign: "center",
     marginVertical: 10,
   },
+
+  imagePickerContainer: {
+    marginVertical: 10,
+    alignItems: "center",
+  },
+
   image: {
     width: 100,
     height: 100,
@@ -445,16 +486,21 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginVertical: 10,
+    color: "#FF8C00",
   },
   checkboxLabel: {
     marginLeft: 8,
     fontSize: 16,
-    color: "#333",
+    color: "#FF8C00",
   },
   updateButton: {
-    fontSize: 16,
-    color: "green",
+    backgroundColor: "#FF8C00",
+    color: "#fff",
+    padding: 10,
+    borderRadius: 8,
     textAlign: "center",
+    fontSize: 16,
+    fontWeight: "bold",
     marginVertical: 10,
   },
   mapModalContainer: {
@@ -474,7 +520,7 @@ const styles = StyleSheet.create({
     bottom: 30,
     left: 20,
     right: 20,
-    backgroundColor: "#007BFF",
+    backgroundColor: "#FF8C00",
     padding: 15,
     borderRadius: 10,
     alignItems: "center",
@@ -494,6 +540,34 @@ const styles = StyleSheet.create({
     fontWeight: "normal",
     fontSize: 16,
     color: "#333",
+  },
+
+  filterContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginBottom: 20,
+    width: "100%",
+    padding: 5,
+  },
+  filterButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    marginHorizontal: 5,
+    backgroundColor: "#f0f0f0",
+    borderWidth: 1,
+    borderColor: "#ddd",
+  },
+  activeFilter: {
+    backgroundColor: "#FF8C00",
+    borderColor: "#333",
+  },
+  filterText: {
+    color: "#666",
+    fontWeight: "600",
+  },
+  activeFilterText: {
+    color: "#fff",
   },
 });
 
