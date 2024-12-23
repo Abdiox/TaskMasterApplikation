@@ -12,111 +12,128 @@ import {
   Platform,
   Alert,
   ScrollView,
+  TurboModuleRegistry,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { collection, getDocs, updateDoc, doc, addDoc, deleteDoc, Timestamp } from "firebase/firestore";
-import DateTimePicker from "@react-native-community/datetimepicker";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 
 import { db } from "../firebase";
 import MapView, { Marker } from "react-native-maps";
 
-// const [showDatePicker, setShowDatePicker] = useState(false);
+const AddTaskDialog = ({ showAddDialog, setShowAddDialog, newTask, setNewTask, handleAddTask }) => {
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
-const AddTaskDialog = ({ showAddDialog, setShowAddDialog, newTask, setNewTask, handleAddTask }) => (
-  <Modal visible={showAddDialog} animationType="slide" transparent={true} onRequestClose={() => setShowAddDialog(false)}>
-    <View style={styles.modalOverlay}>
-      <View style={styles.modalContent}>
-        <ScrollView showsVerticalScrollIndicator={false}>
-          <Text style={styles.modalTitle}>Tilføj ny opgave</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Titel"
-            placeholderTextColor="#666"
-            value={newTask.title}
-            onChangeText={(text) => setNewTask((prev) => ({ ...prev, title: text }))}
-          />
-          <TextInput
-            style={[styles.input, styles.textArea]}
-            placeholder="Beskrivelse"
-            placeholderTextColor="#666"
-            multiline
-            numberOfLines={4}
-            value={newTask.description}
-            onChangeText={(text) => setNewTask((prev) => ({ ...prev, description: text }))}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Deadline (YYYY-MM-DD)"
-            placeholderTextColor="#666"
-            value={newTask.needsToBedoneBy}
-            onChangeText={(text) => setNewTask((prev) => ({ ...prev, needsToBedoneBy: text }))}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Længdegrad"
-            placeholderTextColor="#666"
-            value={newTask.longitude}
-            onChangeText={(text) => setNewTask((prev) => ({ ...prev, longitude: text }))}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Breddegrad"
-            placeholderTextColor="#666"
-            value={newTask.latitude}
-            onChangeText={(text) => setNewTask((prev) => ({ ...prev, latitude: text }))}
-          />
+  const handleConfirm = (date) => {
+    setNewTask((prev) => ({
+      ...prev,
+      needsToBedoneBy: date.toISOString().split("T")[0],
+    }));
+    setShowDatePicker(false);
+  };
 
-          <View style={styles.mapContainer}>
-            <MapView
-              style={styles.map}
-              initialRegion={{
-                latitude: 56.1629, // Danmarks cirka midtpunkt
-                longitude: 10.2039,
-                latitudeDelta: 7,
-                longitudeDelta: 7,
-              }}
-              onLongPress={(e) => {
-                const { latitude, longitude } = e.nativeEvent.coordinate;
-                setNewTask((prev) => ({
-                  ...prev,
-                  latitude: latitude.toString(),
-                  longitude: longitude.toString(),
-                }));
-                Alert.alert("Lokation valgt", "Markør er blevet placeret på det valgte sted");
-              }}
-            >
-              {newTask.latitude && newTask.longitude && (
-                <Marker
-                  coordinate={{
-                    latitude: parseFloat(newTask.latitude),
-                    longitude: parseFloat(newTask.longitude),
-                  }}
-                  title="Opgavens lokation"
-                />
-              )}
-            </MapView>
-          </View>
+  return (
+    <Modal visible={showAddDialog} animationType="slide" transparent={true} onRequestClose={() => setShowAddDialog(false)}>
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+          <ScrollView showsVerticalScrollIndicator={false}>
+            <Text style={styles.modalTitle}>Tilføj ny opgave</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Titel"
+              placeholderTextColor="#666"
+              value={newTask.title}
+              onChangeText={(text) => setNewTask((prev) => ({ ...prev, title: text }))}
+            />
+            <TextInput
+              style={[styles.input, styles.textArea]}
+              placeholder="Beskrivelse"
+              placeholderTextColor="#666"
+              multiline
+              numberOfLines={4}
+              value={newTask.description}
+              onChangeText={(text) => setNewTask((prev) => ({ ...prev, description: text }))}
+            />
 
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              style={[styles.button, styles.cancelButton]}
-              onPress={() => {
-                setShowAddDialog(false);
-                setNewTask({ title: "", description: "", needsToBedoneBy: "" });
-              }}
-            >
-              <Text style={styles.buttonText}>Annuller</Text>
+            <TouchableOpacity style={styles.input} onPress={() => setShowDatePicker(true)}>
+              <Text style={styles.dateText}>{newTask.needsToBedoneBy || "Vælg deadline"}</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={[styles.button, styles.submitButton]} onPress={handleAddTask}>
-              <Text style={styles.buttonText}>Tilføj</Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
+            <DateTimePickerModal
+              isVisible={showDatePicker}
+              mode="date"
+              onConfirm={handleConfirm}
+              onCancel={() => setShowDatePicker(false)}
+              // Add these props for visibility
+              textColor="#000000"
+              backgroundColor="#FFFFFF"
+              isDarkModeEnabled={false}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Længdegrad"
+              placeholderTextColor="#666"
+              value={newTask.longitude}
+              onChangeText={(text) => setNewTask((prev) => ({ ...prev, longitude: text }))}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Breddegrad"
+              placeholderTextColor="#666"
+              value={newTask.latitude}
+              onChangeText={(text) => setNewTask((prev) => ({ ...prev, latitude: text }))}
+            />
+            <View style={styles.mapContainer}>
+              <MapView
+                style={styles.map}
+                initialRegion={{
+                  latitude: 56.1629, // Danmarks cirka midtpunkt
+                  longitude: 10.2039,
+                  latitudeDelta: 7,
+                  longitudeDelta: 7,
+                }}
+                onLongPress={(e) => {
+                  const { latitude, longitude } = e.nativeEvent.coordinate;
+                  setNewTask((prev) => ({
+                    ...prev,
+                    latitude: latitude.toString(),
+                    longitude: longitude.toString(),
+                  }));
+                  Alert.alert("Lokation valgt", "Markør er blevet placeret på det valgte sted");
+                }}
+              >
+                {newTask.latitude && newTask.longitude && (
+                  <Marker
+                    coordinate={{
+                      latitude: parseFloat(newTask.latitude),
+                      longitude: parseFloat(newTask.longitude),
+                    }}
+                    title="Opgavens lokation"
+                  />
+                )}
+              </MapView>
+            </View>
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={[styles.button, styles.cancelButton]}
+                onPress={() => {
+                  setShowAddDialog(false);
+                  setNewTask({ title: "", description: "", needsToBedoneBy: "" });
+                }}
+              >
+                <Text style={styles.buttonText}>Annuller</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={[styles.button, styles.submitButton]} onPress={handleAddTask}>
+                <Text style={styles.buttonText}>Tilføj</Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
+        </View>
       </View>
-    </View>
-  </Modal>
-);
+    </Modal>
+  );
+};
 
 const EditTaskDialog = ({ showEditDialog, setShowEditDialog, selectedTask, setSelectedTask, handleEditTask }) => {
   const [editedTask, setEditedTask] = useState({
@@ -706,6 +723,11 @@ const styles = StyleSheet.create({
   map: {
     width: "100%",
     height: "100%",
+  },
+
+  dateText: {
+    color: "#1a1a1a",
+    fontSize: 16,
   },
 });
 
