@@ -144,6 +144,16 @@ const EditTaskDialog = ({ showEditDialog, setShowEditDialog, selectedTask, setSe
     latitude: "",
   });
 
+  const [showEditDatePicker, setShowEditDatePicker] = useState(false);
+
+  const handleConfirm = (date) => {
+    setEditedTask((prev) => ({
+      ...prev,
+      needsToBedoneBy: date.toISOString().split("T")[0],
+    }));
+    setShowEditDatePicker(false);
+  };
+
   useEffect(() => {
     if (selectedTask) {
       setEditedTask({
@@ -177,12 +187,19 @@ const EditTaskDialog = ({ showEditDialog, setShowEditDialog, selectedTask, setSe
             value={editedTask.description}
             onChangeText={(text) => setEditedTask((prev) => ({ ...prev, description: text }))}
           />
-          <TextInput
-            style={styles.input}
-            placeholder="Deadline (YYYY-MM-DD)"
-            placeholderTextColor="#666"
-            value={editedTask.needsToBedoneBy}
-            onChangeText={(text) => setEditedTask((prev) => ({ ...prev, needsToBedoneBy: text }))}
+          <TouchableOpacity style={styles.input} onPress={() => setShowEditDatePicker(true)}>
+            <Text style={styles.dateText}>{editedTask.needsToBedoneBy || "Vælg deadline"}</Text>
+          </TouchableOpacity>
+
+          <DateTimePickerModal
+            isVisible={showEditDatePicker}
+            mode="date"
+            onConfirm={handleConfirm}
+            onCancel={() => setShowEditDatePicker(false)}
+            // Add these props for visibility
+            textColor="#000000"
+            backgroundColor="#FFFFFF"
+            isDarkModeEnabled={false}
           />
 
           <View style={styles.mapContainer}>
