@@ -173,28 +173,18 @@ const Opgaver = ({ navigation, route }) => {
   const uploadImageToFirebase = async (imageUri) => {
     try {
       const storage = getStorage();
+      const fileName = imageUri.split("/").pop();
+      const imageRef = ref(storage, `task-images/${fileName}`);
+
       const response = await fetch(imageUri);
       const blob = await response.blob();
 
-      // Add error handling for blob
-      if (!blob) {
-        throw new Error("Failed to create blob from image");
-      }
-
-      // Use timestamp in filename to avoid conflicts
-      const fileName = `${Date.now()}-${imageUri.split("/").pop()}`;
-      const imageRef = ref(storage, `task-images/${fileName}`);
-
-      // Add upload metadata
-      const metadata = {
-        contentType: "image/jpeg",
-      };
-
-      await uploadBytes(imageRef, blob, metadata);
-      return await getDownloadURL(imageRef);
+      await uploadBytes(imageRef, blob);
+      const downloadURL = await getDownloadURL(imageRef);
+      return downloadURL;
     } catch (error) {
-      console.error("Detailed upload error:", error);
-      throw error;
+      console.error("Fejl ved upload af billede:", error);
+      return null;
     }
   };
 
