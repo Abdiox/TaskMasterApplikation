@@ -37,6 +37,9 @@ const Opgaver = ({ navigation, route }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [showMapModal, setShowMapModal] = useState(false);
   const [location, setLocation] = useState(null);
+  const [showSuccesAnimation, setShowSuccesAnimation] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
+
   const [filterStatus, setFilterStatus] = useState("all");
 
   useEffect(() => {
@@ -202,11 +205,12 @@ const Opgaver = ({ navigation, route }) => {
   };
 
   const handleUpdateTask = async () => {
-    if (!selectedTask) return;
+    if (!selectedTask || isAnimating) return;
 
     try {
-      let imageUrl = null;
+      setIsAnimating(true);
 
+      let imageUrl = null;
       if (taskImage) {
         imageUrl = await uploadImageToFirebase(taskImage);
       }
@@ -218,12 +222,19 @@ const Opgaver = ({ navigation, route }) => {
         dateOfFinished: isTaskDone ? new Date() : null,
       });
 
-      alert("Opgaven er opdateret!");
       setShowTaskDialog(false);
-      fetchAssignmentsWithUsers();
+      await fetchAssignmentsWithUsers();
+
+      if (isTaskDone) {
+        setShowSuccesAnimation(true);
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        setShowSuccesAnimation(false);
+      }
     } catch (error) {
       console.error("Fejl ved opdatering af opgave:", error);
       alert("Noget gik galt under opdateringen.");
+    } finally {
+      setIsAnimating(false);
     }
   };
 
@@ -271,6 +282,12 @@ const Opgaver = ({ navigation, route }) => {
           onAnimationFinish={handleAnimationFinish}
           style={styles.animationSize}
         />
+      )}
+
+      {showSuccesAnimation && (
+        <View style={styles.animationOverlay}>
+          <LottieView source={require("../assets/JobSuccess.json")} autoPlay loop={false} style={styles.JobDoneAnimation} />
+        </View>
       )}
 
       <Modal visible={showTaskDialog} animationType="slide" transparent={true} onRequestClose={() => setShowTaskDialog(false)}>
@@ -568,6 +585,24 @@ const styles = StyleSheet.create({
   },
   activeFilterText: {
     color: "#fff",
+  },
+
+  animationOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(255,255,255,0.8)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 1000,
+  },
+
+  JobDoneAnimation: {
+    width: 200,
+    height: 200,
+    zIndex: 1001,
   },
 });
 
