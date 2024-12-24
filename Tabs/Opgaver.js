@@ -21,12 +21,10 @@ import * as ImagePicker from "expo-image-picker";
 import { db } from "../firebase";
 import { format } from "date-fns";
 import { da } from "date-fns/locale";
-
 import MapView, { Marker } from "react-native-maps";
 
 const Opgaver = ({ navigation, route }) => {
   const { userData } = route.params || {};
-
   const [taskAnimation, setTaskAnimation] = useState(true);
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -37,10 +35,10 @@ const Opgaver = ({ navigation, route }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [showMapModal, setShowMapModal] = useState(false);
   const [location, setLocation] = useState(null);
-  const [showSuccesAnimation, setShowSuccesAnimation] = useState(false);
-  const [isAnimating, setIsAnimating] = useState(false);
-
+  const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
   const [filterStatus, setFilterStatus] = useState("all");
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [animationKey, setAnimationKey] = useState(0);
 
   useEffect(() => {
     if (userData) {
@@ -69,7 +67,6 @@ const Opgaver = ({ navigation, route }) => {
 
               if (userDocSnap.exists()) {
                 const userData = userDocSnap.data();
-                console.log("User found:", userData);
                 return { ...assignment, user: { name: userData.name, email: userData.email } };
               } else {
                 console.warn(`No user found for userId: ${assignment.userId}`);
@@ -86,7 +83,6 @@ const Opgaver = ({ navigation, route }) => {
       } else {
         setLoading(true);
         const userId = userData?.uid;
-        console.log(userData);
         if (!userId) {
           console.error("Ingen bruger-id fundet.");
           return;
@@ -94,7 +90,6 @@ const Opgaver = ({ navigation, route }) => {
 
         const assignmentsRef = collection(db, "assignments");
         const q = query(assignmentsRef, where("userId", "==", userId), where("isDone", "==", false));
-
         const querySnapshot = await getDocs(q);
 
         const userAssignments = [];
@@ -105,7 +100,6 @@ const Opgaver = ({ navigation, route }) => {
         setTasks(userAssignments);
         setLoading(false);
       }
-      console.log("Opgaver hentet:", tasks);
     } catch (error) {
       console.error("Fejl ved hentning af opgaver:", error);
       setLoading(false);
@@ -146,25 +140,16 @@ const Opgaver = ({ navigation, route }) => {
 
       if (assignmentDocSnap.exists()) {
         const assignmentData = assignmentDocSnap.data();
-        console.log("Raw assignment data:", assignmentData);
-
         if (assignmentData.latitude && assignmentData.longitude) {
-          console.log("Location data found:", {
-            latitude: assignmentData.latitude,
-            longitude: assignmentData.longitude,
-          });
-
           setLocation({
             latitude: parseFloat(assignmentData.latitude),
             longitude: parseFloat(assignmentData.longitude),
           });
           setShowMapModal(true);
         } else {
-          console.log("No location data in assignment:", assignmentData);
           alert("Ingen lokationsdata tilgængelig for denne opgave");
         }
       } else {
-        console.error("No assignment found for taskId: ", taskId);
         alert("Kunne ikke finde opgaven");
       }
     } catch (error) {
@@ -188,19 +173,28 @@ const Opgaver = ({ navigation, route }) => {
   const uploadImageToFirebase = async (imageUri) => {
     try {
       const storage = getStorage();
-      const fileName = imageUri.split("/").pop();
-      const imageRef = ref(storage, `task-images/${fileName}`);
-
       const response = await fetch(imageUri);
       const blob = await response.blob();
 
-      await uploadBytes(imageRef, blob);
+      // Add error handling for blob
+      if (!blob) {
+        throw new Error("Failed to create blob from image");
+      }
 
-      const downloadURL = await getDownloadURL(imageRef);
-      return downloadURL;
+      // Use timestamp in filename to avoid conflicts
+      const fileName = `${Date.now()}-${imageUri.split("/").pop()}`;
+      const imageRef = ref(storage, `task-images/${fileName}`);
+
+      // Add upload metadata
+      const metadata = {
+        contentType: "image/jpeg",
+      };
+
+      await uploadBytes(imageRef, blob, metadata);
+      return await getDownloadURL(imageRef);
     } catch (error) {
-      console.error("Fejl ved upload af billede:", error);
-      return null;
+      console.error("Detailed upload error:", error);
+      throw error;
     }
   };
 
@@ -209,8 +203,8 @@ const Opgaver = ({ navigation, route }) => {
 
     try {
       setIsAnimating(true);
-
       let imageUrl = null;
+
       if (taskImage) {
         imageUrl = await uploadImageToFirebase(taskImage);
       }
@@ -226,9 +220,10 @@ const Opgaver = ({ navigation, route }) => {
       await fetchAssignmentsWithUsers();
 
       if (isTaskDone) {
-        setShowSuccesAnimation(true);
+        setAnimationKey((prev) => prev + 1);
+        setShowSuccessAnimation(true);
         await new Promise((resolve) => setTimeout(resolve, 2000));
-        setShowSuccesAnimation(false);
+        setShowSuccessAnimation(false);
       }
     } catch (error) {
       console.error("Fejl ved opdatering af opgave:", error);
@@ -236,6 +231,28 @@ const Opgaver = ({ navigation, route }) => {
     } finally {
       setIsAnimating(false);
     }
+  };
+
+  const renderFilterButtons = () => {
+    if (userData?.role === "CEO" || userData?.role === "Byggeleder") {
+      return (
+        <View style={styles.filterContainer}>
+          <TouchableOpacity style={[styles.filterButton, filterStatus === "all" && styles.activeFilter]} onPress={() => setFilterStatus("all")}>
+            <Text style={[styles.filterText, filterStatus === "all" && styles.activeFilterText]}>Alle</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.filterButton, filterStatus === "active" && styles.activeFilter]} onPress={() => setFilterStatus("active")}>
+            <Text style={[styles.filterText, filterStatus === "active" && styles.activeFilterText]}>Aktive</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.filterButton, filterStatus === "completed" && styles.activeFilter]}
+            onPress={() => setFilterStatus("completed")}
+          >
+            <Text style={[styles.filterText, filterStatus === "completed" && styles.activeFilterText]}>Færdige</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+    return null;
   };
 
   const renderTask = ({ item }) => (
@@ -284,9 +301,9 @@ const Opgaver = ({ navigation, route }) => {
         />
       )}
 
-      {showSuccesAnimation && (
+      {showSuccessAnimation && (
         <View style={styles.animationOverlay}>
-          <LottieView source={require("../assets/JobSuccess.json")} autoPlay loop={false} style={styles.JobDoneAnimation} />
+          <LottieView key={animationKey} source={require("../assets/JobSuccess.json")} autoPlay loop={false} style={styles.JobDoneAnimation} />
         </View>
       )}
 
@@ -361,20 +378,7 @@ const Opgaver = ({ navigation, route }) => {
         <Text style={styles.subtitle}>Du har fuldført alle dine opgaver</Text>
       )}
 
-      <View style={styles.filterContainer}>
-        <TouchableOpacity style={[styles.filterButton, filterStatus === "all" && styles.activeFilter]} onPress={() => setFilterStatus("all")}>
-          <Text style={[styles.filterText, filterStatus === "all" && styles.activeFilterText]}>Alle</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.filterButton, filterStatus === "active" && styles.activeFilter]} onPress={() => setFilterStatus("active")}>
-          <Text style={[styles.filterText, filterStatus === "active" && styles.activeFilterText]}>Aktive</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.filterButton, filterStatus === "completed" && styles.activeFilter]}
-          onPress={() => setFilterStatus("completed")}
-        >
-          <Text style={[styles.filterText, filterStatus === "completed" && styles.activeFilterText]}>Færdige</Text>
-        </TouchableOpacity>
-      </View>
+      {renderFilterButtons()}
 
       <FlatList
         data={getFilteredTasks()}
@@ -440,8 +444,8 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   animationSize: {
-    width: Dimensions.get("window").width * 0.8,
-    height: Dimensions.get("window").width * 0.8,
+    width: Dimensions.get("window").width * 0.4,
+    height: Dimensions.get("window").width * 0.4,
     marginBottom: 20,
   },
   modalContainer: {
@@ -481,19 +485,16 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#aaa",
   },
-
   addPicture: {
     fontSize: 16,
     color: "#FF8C00",
     textAlign: "center",
     marginVertical: 10,
   },
-
   imagePickerContainer: {
     marginVertical: 10,
     alignItems: "center",
   },
-
   image: {
     width: 100,
     height: 100,
@@ -558,7 +559,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#333",
   },
-
   filterContainer: {
     flexDirection: "row",
     justifyContent: "center",
@@ -586,7 +586,6 @@ const styles = StyleSheet.create({
   activeFilterText: {
     color: "#fff",
   },
-
   animationOverlay: {
     position: "absolute",
     top: 0,
@@ -598,7 +597,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     zIndex: 1000,
   },
-
   JobDoneAnimation: {
     width: 200,
     height: 200,
