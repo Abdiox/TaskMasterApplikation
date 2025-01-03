@@ -1,19 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  StatusBar,
-  StyleSheet,
-  Text,
-  View,
-  Dimensions,
-  FlatList,
-  TouchableOpacity,
-  Modal,
-  TextInput,
-  Platform,
-  Alert,
-  ScrollView,
-  TurboModuleRegistry,
-} from "react-native";
+import { StatusBar, StyleSheet, Text, View, Dimensions, FlatList, TouchableOpacity, Modal, TextInput, Alert, ScrollView } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { collection, getDocs, updateDoc, doc, addDoc, deleteDoc, Timestamp } from "firebase/firestore";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
@@ -64,7 +50,6 @@ const AddTaskDialog = ({ showAddDialog, setShowAddDialog, newTask, setNewTask, h
               mode="date"
               onConfirm={handleConfirm}
               onCancel={() => setShowDatePicker(false)}
-              // Add these props for visibility
               textColor="#000000"
               backgroundColor="#FFFFFF"
               isDarkModeEnabled={false}
@@ -87,7 +72,7 @@ const AddTaskDialog = ({ showAddDialog, setShowAddDialog, newTask, setNewTask, h
               <MapView
                 style={styles.map}
                 initialRegion={{
-                  latitude: 56.1629, // Danmarks cirka midtpunkt
+                  latitude: 56.1629,
                   longitude: 10.2039,
                   latitudeDelta: 7,
                   longitudeDelta: 7,
@@ -196,7 +181,6 @@ const EditTaskDialog = ({ showEditDialog, setShowEditDialog, selectedTask, setSe
             mode="date"
             onConfirm={handleConfirm}
             onCancel={() => setShowEditDatePicker(false)}
-            // Add these props for visibility
             textColor="#000000"
             backgroundColor="#FFFFFF"
             isDarkModeEnabled={false}

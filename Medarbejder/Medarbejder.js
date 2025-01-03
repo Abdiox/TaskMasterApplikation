@@ -246,7 +246,6 @@ const Medarbejder = ({ navigation }) => {
         style={styles.EditAnimationSize}
       />
 
-      {/* Add user modal */}
       <Modal visible={showAddUserModal} animationType="slide" onRequestClose={() => setShowAddUserModal(false)}>
         <View style={styles.modalContainer}>
           <Text style={styles.modalTitle}>Opret ny medarbejder</Text>

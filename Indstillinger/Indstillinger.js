@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { StyleSheet, Text, View, Image, Dimensions } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { Button } from "react-native-paper";
 import LottieView from "lottie-react-native";
 
@@ -13,15 +13,8 @@ const Indstillinger = ({ navigation }) => {
           <LottieView source={require("../assets/IndstillingerAnimation.json")} autoPlay loop style={styles.indstillingerAnimation} />
         </View>
       )}
-
       <View style={styles.header}>
         <Text style={styles.title}>Privatindstillinger for konto</Text>
-        {/* <Button mode="contained" style={styles.button} labelStyle={styles.buttonText} onPress={() => navigation.navigate("RedigerProfil")}>
-          Rediger Profil
-        </Button>
-        <Button mode="contained" style={styles.button} labelStyle={styles.buttonText}>
-          Ændre adgangskode
-        </Button> */}
         <Button mode="contained" style={styles.button} labelStyle={styles.buttonText} onPress={() => navigation.navigate("OmTaskMaster")}>
           Om TaskMaster
         </Button>
@@ -77,11 +70,11 @@ const styles = StyleSheet.create({
     width: "80%",
     marginVertical: 10,
     paddingVertical: 10,
-    backgroundColor: "#FFA500", // Orange background
+    backgroundColor: "#FFA500",
   },
 
   buttonText: {
-    color: "#fff", // White text color
+    color: "#fff",
     fontWeight: "bold",
   },
 
