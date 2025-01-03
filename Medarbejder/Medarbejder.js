@@ -295,7 +295,6 @@ const Medarbejder = ({ navigation }) => {
         </View>
       </Modal>
 
-      {/* User details modal */}
       <Modal visible={showUserDetailsModal} animationType="slide" onRequestClose={() => setShowUserDetailsModal(false)}>
         <View style={styles.modalContainer}>
           <Text style={styles.modalTitle}>Bruger detaljer</Text>
@@ -462,13 +461,13 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 20,
     right: 20,
-    width: 60, // Størrelsen på knappen
-    height: 60, // Størrelsen på knappen
-    borderRadius: 30, // Gør den rund
-    backgroundColor: "#FFA500", // Baggrundsfarve
-    justifyContent: "center", // Centrerer teksten
-    alignItems: "center", // Centrerer teksten
-    zIndex: 999, // Sørger for, at den er øverst
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "#FFA500",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 999,
   },
   addUserButtonText: {
     color: "#FFF",

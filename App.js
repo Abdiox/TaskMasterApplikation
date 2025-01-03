@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { app, db, auth } from "./firebase";
+import { db, auth } from "./firebase";
 import { StatusBar } from "expo-status-bar";
 import { StyleSheet, Text, View, Image, Dimensions } from "react-native";
 import { TextInput, Button } from "react-native-paper";
@@ -8,7 +8,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { MaterialIcons } from "@expo/vector-icons";
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import Opgaver from "./Tabs/Opgaver";
 import Hjem from "./Tabs/Hjem";
@@ -25,33 +25,29 @@ const Tab = createBottomTabNavigator();
 
 async function handleSignIn(enteredEmail, enteredPassword, navigation, setAccountAnimation, setLoginSuccessAnimation) {
   try {
-    // Log ind med email og password
     const userCredentials = await signInWithEmailAndPassword(auth, enteredEmail, enteredPassword);
     if (!userCredentials) {
       throw new aler("Login attempt failed. Incorrect email or password.");
     }
-    const user = userCredentials.user; // Bruger objekt fra Auth
-    const uid = user.uid; // Hent UID for den indloggede bruger
+    const user = userCredentials.user;
+    const uid = user.uid;
 
     console.log("Bruger UID:", uid);
 
-    // Hent brugerdata fra Firestore baseret på UID
-    const userDocRef = doc(db, "users", uid); // 'users' er samlingen
+    const userDocRef = doc(db, "users", uid);
     const userDocSnap = await getDoc(userDocRef);
 
     if (userDocSnap.exists()) {
       const userData = userDocSnap.data();
 
-      // Log brugerdata og UID før navigation
       console.log("Brugerdata før navigation:", { ...userData, uid });
 
-      // Eksempel: Gem brugerdata i en state, context eller navigation-parametre
       setAccountAnimation(false);
       setLoginSuccessAnimation(true);
-      // Naviger videre og inkluder både userData og uid
+
       setTimeout(() => {
         navigation.navigate("Main", { userData: { ...userData, uid } });
-      }, 150000); // Giv mere tid til animationen
+      }, 150000);
     } else {
       console.error("Ingen brugerdata fundet i Firestore.");
       alert("Ingen brugerdata fundet. Kontakt administrator.");
@@ -80,7 +76,6 @@ function LoginSite({ navigation }) {
             const userData = userDocSnap.data();
             console.log("Auto-login brugerdata:", userData);
 
-            // Navigér til Main med brugerdata
             navigation.navigate("Main", { userData: { ...userData, uid } });
           } else {
             console.error("Brugerdata findes ikke.");
@@ -125,12 +120,7 @@ function LoginSite({ navigation }) {
         Sign In
       </Button>
       {LoginSuccessAnimation && (
-        <LottieView
-          source={require("./assets/LoginSuccesfullyAnimation.json")}
-          autoPlay
-          loop={false} // Kun spil én gang
-          style={styles.animationSize}
-        />
+        <LottieView source={require("./assets/LoginSuccesfullyAnimation.json")} autoPlay loop={false} style={styles.animationSize} />
       )}
 
       <StatusBar style="auto" />
@@ -140,7 +130,7 @@ function LoginSite({ navigation }) {
 }
 
 function BottomTabs({ route }) {
-  const { userData } = route.params || {}; // Hent brugerdata fra navigationen
+  const { userData } = route.params || {};
 
   return (
     <Tab.Navigator
@@ -170,10 +160,8 @@ function BottomTabs({ route }) {
       <Tab.Screen name="Hjem" component={Hjem} />
       <Tab.Screen name="Opgaver" component={Opgaver} initialParams={{ userData }} />
 
-      {/* Vis kun fanen "SætOpgaver" hvis brugerens rolle er "Byggeleder" */}
       {(userData?.role === "Byggeleder" || userData?.role === "CEO") && <Tab.Screen name="SætOpgaver" component={SætOpgaver} />}
 
-      {/* Vis kun fanen Adminstration hvis brugerens rolle er "Byggeleder" */}
       {(userData?.role === "Byggeleder" || userData?.role === "CEO") && <Tab.Screen name="Adminstration" component={Adminstration} />}
 
       <Tab.Screen name="Profil" component={Profil} initialParams={{ userData }} />

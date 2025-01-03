@@ -87,7 +87,6 @@ const Profil = ({ navigation, route }) => {
           </LinearGradient>
         </View>
 
-        {/* Logout Button */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <LinearGradient colors={["#FFA500", "#FF8C00"]} style={styles.logoutGradient}>
             <Text style={styles.logoutText}>LOG UD</Text>

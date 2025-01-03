@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
   header: {
     alignItems: "center",
     width: "100%",
-    marginTop: 40, // Add some margin to the top to avoid overlap
+    marginTop: 40,
   },
 
   title: {
